@@ -18,9 +18,15 @@ import copy
 import random
 import numpy.random as rnd
 import PsiMarginal 
+from psychopy import visual, event, core, gui, data, monitors
 
 #%% =============================================================================
 # functions
+def escape_check(keys,win,f):
+    if 'escape' in keys:
+        win.close()
+        f.close()
+
 
 def nframes(time_in_ms, framelength):
      return int(time_in_ms/framelength)
@@ -44,7 +50,6 @@ def makePsi(nTrials,signal_start,signal_end,steps): # start_thresh is signal str
             guessRate=0.5, slopePrior=('gamma',3,6), lapseRate=0.05, lapsePrior=('beta',2,20), marginalize=True)
     return staircase
 # sigma is slope
-
 
 
 def loadimage(base_path,trialinfo,visibility):
@@ -142,14 +147,6 @@ class Stimuli:
         self.list = os.listdir(os.path.join(image_path))
         self.unique_nr = {}
         
-    def loadimages(self):
-        # opens all stimuli and adds them to an array self.im_array
-        stim_list = []
-        for im in range(0, len(self.list)):
-            stim_list.append(Image.open(os.path.join(self.path,self.list[im]), mode="r"))
-        im_array = np.array([np.array(im) for im in stim_list])
-        self.im_array = im_array
-
     def getuniquenr(self,whichtype): 
         # function makes a list of unique numbers
         # if name of images are ID01_IM01.bmp

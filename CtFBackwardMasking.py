@@ -168,7 +168,8 @@ writer.writeheader()
 change_clock = core.Clock()
 rt_clock = core.Clock()
 
-# Open a window
+#%% ===========================================================================
+# Prepare/open window
 win = visual.Window(monitor = mon, size = scrsize, color ='grey', units ='pix', fullscr = True)
 
 
@@ -190,42 +191,11 @@ for text in instructiontexts:
     win.flip()
 
     keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-
+    escape_check(keys,win,f)
 
 # Hide cursor when window is open
 win.mouseVisible=False
 
-
-# for debugging: win.close()
-
-
-#%% =============================================================================
-#window setup
-#cra
-instruc01 = 'Welcome!\nHopefully you are comfortable and relaxed.\n\nDuring this experiment you will see faces flashed on the screen.\nThe only thing you should do\nis press a button when the colour changes.\n\nPress a button to continue.\n(1 -> buttonbox key)'
-instruc01 = visual.TextStim(win, color='black', height=32, text=instruc01)
-instruc02 = 'The experiment is about to start!\n\n Waiting for the scanner trigger.. (s)'
-instruc02 = visual.TextStim(win, color='black',height=32,text=instruc02)
-
-#create fixation cross
-fix1=visual.Line(win,start=(-stimSize,-stimSize),end=(stimSize, stimSize),
-                 pos=(0.0, 0.0),lineWidth=1.0,lineColor='black',units='pix')
-fix2=visual.Line(win,start=(-stimSize,stimSize),end=(stimSize, -stimSize),
-                 pos=(0.0, 0.0),lineWidth=1.0,lineColor='black',units='pix')
-
-
-
-
-instruc01.draw()
-win.flip()
-while not '1' in event.getKeys():
-    core.wait(0.1)
-
-instruc02.draw()
-win.flip()
-while not 's' in event.getKeys():
-    core.wait(0.1)
-    
 
 # for debugging: win.close()
 
@@ -245,40 +215,6 @@ bitmap2 = visual.ImageStim(win, size=stimsize, interpolate=True)
 bitmap_mask = visual.ImageStim(win, size=stimsize, interpolate=True)
 
 
-
-
-# We draw the instruction text
-instruc01 = visual.TextStim(win, color='black', height=32, text=instruc01)
-instructions = visual.TextStim(
-    win,
-    height=32,
-    font="Palatino Linotype",
-    alignHoriz='center'
-    )
-
-    
-instructions.text = """
-In this experiment, you will see two faces displayed one after another.\n 
-Your task is to report whether the two faces have the same identity."""
-instructions.draw()
-
-instructions2=instructions
-instructions2.text = """
-If both pictures are of the SAME person, press "S",\n
-if they different people, press "L"\n\n 
-
-Press SPACE key to continue.
-"""
-
-instructions2.pos=[0,0]
-instructions2.draw()
-
-#show instruction text
-win.flip()
-keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-
-
-# for debugging: win.close()
 
 #%% ===========================================================================
 
