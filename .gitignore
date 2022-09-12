@@ -4,7 +4,7 @@
 /background/*.bmp
 /masks/*.bmp
 /test_stimuli_ignore
-/__psycache__
+/__pycache__
 
 
 
