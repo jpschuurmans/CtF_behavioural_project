@@ -17,20 +17,11 @@ import itertools
 import copy
 import random
 import numpy.random as rnd
-import PsiMarginal 
 from psychopy import visual, event, core, gui, data, monitors
+from JS_psychopyfunctions import *
 
 #%% =============================================================================
 # functions
-def escape_check(keys,win,f):
-    if 'escape' in keys:
-        win.close()
-        f.close()
-        
-
-def nframes(time_in_ms, framelength):
-     return int(time_in_ms/framelength)
-
 
 def num_frames(fix_dur, int_dur, mask_dur,framelength):
     nframe = {}
@@ -41,17 +32,6 @@ def num_frames(fix_dur, int_dur, mask_dur,framelength):
     nframe['mask'] = nframes(mask_dur,framelength)
     nframe['stim2'] = 1
     return nframe
-
-
-def makePsi(nTrials,signal_start,signal_end,steps): # start_thresh is signal strength in percentage
-# Image visibility ranges between 1.5 and 40, logarithmically, 40 possibilities.
-    staircase = PsiMarginal.Psi(stimRange=np.geomspace(signal_start,signal_end,steps,endpoint=True),
-            Pfunction='Weibull', nTrials=nTrials,
-            threshold=np.geomspace(signal_start,signal_end,steps, endpoint=True), 
-            thresholdPrior=('normal',5,5), slope=np.geomspace(0.5, 20, 50, endpoint=True),
-            guessRate=0.5, slopePrior=('gamma',3,6), lapseRate=0.05, lapsePrior=('beta',2,20), marginalize=True)
-    return staircase
-# sigma is slope
 
 
 def loadimage(base_path,trialinfo,visibility,LC):
@@ -79,10 +59,6 @@ def loadimage(base_path,trialinfo,visibility,LC):
     draw['mask'] = replace_background(draw['mask'],draw['int'],facepix)
     return draw
 
-def equalise_im(loaded_image, LC):
-    loaded_image = 2.*(loaded_image - np.min(loaded_image)) / np.ptp(loaded_image)-1 # equalise image
-    #loaded_image = (loaded_image*LC[1]) + LC[0]   # desired luminance and contrast
-    return loaded_image
 
 def replace_background(equalised_image, background_image, facepix):
         new_im = np.empty(np.shape(equalised_image))
@@ -92,23 +68,6 @@ def replace_background(equalised_image, background_image, facepix):
             elif facepix[iy, ix] == 255:
                 new_im[iy, ix] = equalised_image[iy, ix]               
         return new_im
-
-def occlude(image, back, signal):
-    fullAlpha = 255 # highest image pixel value
-    # create Alpha channel array for the image, fill it with 255s
-    imHeight, imWidth = image.shape[:]
-    srcA = np.full([imHeight,imWidth], fullAlpha)
-    # same for backrgound
-    backHeight, backWidth = back.shape[:]
-    backA = np.full([backHeight, backWidth], fullAlpha)
-    
-    # reduce Alpha transparency of image / background
-    srcA[:, :] = fullAlpha -((100-signal)/100*fullAlpha)
-    backA[:, :] = ((100-signal)/100*fullAlpha)
-    # blend them into a single image
-    blend=(image*(srcA/fullAlpha))+(back*(backA/fullAlpha))
-    # visualise: Image.fromarray(blend.astype('uint8'))
-    return blend
 
 
 def block_break(win, f, block_no,maxblock):
@@ -225,41 +184,41 @@ class Ordertrials(object):
                         'diff' : self.stim.diff_list}
         
         for SF in self.sf:
-                for dur in self.dur:
-                    ImFrame = int(int(dur)/framelength)
-                    for idx,whichid in enumerate(self.stim.unique_nr['ID']): # loop through ID's
-                        for trialtype in self.match: # same or different trial                        
-                            triallist = matchingcond[trialtype]
-                            for cmb,combi_per_id in enumerate(triallist[idx]): #all possible combinations per ID
-                                for stair in self.stair: #two staircases per condition
-                                    trial_name = f'{SF}_{dur}_{trialtype}_{stair}' # trial type name
-                                    #the two backgrounds will alternate depening on the staircase nr
-                                    #back = f'BG0{str(stair)}.bmp' ################################### if using this, also change self.trial_list
-                                    num1 = round(random.random())
-                                    if num1 == 0: # randomise which image is presented as image1
-                                        num2 = 1 # making sure image 2 is the other image... :)
-                                    else:
-                                        num2 = 0
-                                    # trial_list will be a dictionary with 24 keys
-                                    # the conditions are SF*duration (2*3 = 6 in the example)
-                                    # this is doubled to have the same/diff conditions for the matching task (2*6 = 12)
-                                    # this is doubled because there are 2 staircases per condition (2*12 = 24)
-                                    self.trial_list[trial_name].append({
-                                        'block' : [],
-                                        'trialno' : 0,
-                                        'stim1' : combi_per_id[num1],
-                                        'stim2' : combi_per_id[num2],
-                                        'matching' : trialtype,
-                                        #'mask' : f'{back[:-4]}_{combi_per_id[num1][:-4]}_{SF}.bmp',
-                                        'mask' : f'{combi_per_id[num1][:-4]}_{SF}.bmp',
-                                        'duration' : dur,
-                                        'nframes' : ImFrame,
-                                        'SF' : SF,
-                                        'background' : [],
-                                        'staircasenr': stair,
-                                        'rt' : 0,
-                                        'acc' : 0,
-                                        'contrast' : 0})  
+            for dur in self.dur:
+                ImFrame = int(int(dur)/framelength)
+                for idx,whichid in enumerate(self.stim.unique_nr['ID']): # loop through ID's
+                    for trialtype in self.match: # same or different trial                        
+                        triallist = matchingcond[trialtype]
+                        for cmb,combi_per_id in enumerate(triallist[idx]): #all possible combinations per ID
+                            for stair in self.stair: #two staircases per condition
+                                trial_name = f'{SF}_{dur}_{trialtype}_{stair}' # trial type name
+                                #the two backgrounds will alternate depening on the staircase nr
+                                #back = f'BG0{str(stair)}.bmp' ################################### if using this, also change self.trial_list
+                                num1 = round(random.random())
+                                if num1 == 0: # randomise which image is presented as image1
+                                    num2 = 1 # making sure image 2 is the other image... :)
+                                else:
+                                    num2 = 0
+                                # trial_list will be a dictionary with 24 keys
+                                # the conditions are SF*duration (2*3 = 6 in the example)
+                                # this is doubled to have the same/diff conditions for the matching task (2*6 = 12)
+                                # this is doubled because there are 2 staircases per condition (2*12 = 24)
+                                self.trial_list[trial_name].append({
+                                    'block' : [],
+                                    'trialno' : 0,
+                                    'stim1' : combi_per_id[num1],
+                                    'stim2' : combi_per_id[num2],
+                                    'matching' : trialtype,
+                                    #'mask' : f'{back[:-4]}_{combi_per_id[num1][:-4]}_{SF}.bmp',
+                                    'mask' : f'{combi_per_id[num1][:-4]}_{SF}.bmp',
+                                    'duration' : dur,
+                                    'nframes' : ImFrame,
+                                    'SF' : SF,
+                                    'background' : [],
+                                    'staircasenr': stair,
+                                    'rt' : 0,
+                                    'acc' : 0,
+                                    'contrast' : 0})  
                                     
     def shuffle_trials(self):
         # here we shuffle trials from each condition within the condition block
@@ -288,16 +247,22 @@ class Ordertrials(object):
                 for stairnr in self.stair:
                     # for every mini block, grab 8 unique trials.. and go on to the next trial
                     for trial in range(int((trials_per_block/len(self.stair))/2)): # 8 (4same/4diff) trials of one condition per block
-                        for matching in self.match:
-                            trial2add = copy.deepcopy(self.trial_list[f'{cond}_{matching}_{stairnr}'][trial*(idx+1)])
+                        for matchit in self.match:
+                            trial2add = copy.deepcopy(self.trial_list[f'{cond}_{matchit}_{stairnr}'][trial*(idx+1)])
                             trial2add['mask'] = f'BG0{back_num}_{trial2add["mask"]}'
                             trial2add['background'] = f'BG0{back_num}.bmp'
                             tempblock.append(trial2add)                   
                 rnd.shuffle(tempblock)
                 stair['trials'] = tempblock
                 tempblock=[]
-                mini_blocks[cond] = stair
-            blocklist[name] = mini_blocks
+                mini_blocks[cond] = copy.deepcopy(stair)
+            #shuffeling the mini block order
+            keys = list(mini_blocks.keys())
+            random.shuffle(keys)
+            shuffled_miniblocks = dict()
+            for key in keys:
+                shuffled_miniblocks.update({key: mini_blocks[key]})
+            blocklist[name] = shuffled_miniblocks
         self.blocks = blocklist
 
     def prepare_staircare(self,nTrials,signal_start,signal_end,steps):

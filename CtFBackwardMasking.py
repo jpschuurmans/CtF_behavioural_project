@@ -34,6 +34,7 @@ from psychopy import visual, event, core, gui, data, monitors
 from PIL import Image
 import csv
 from functions_ctfbackwardmasking import *
+from JS_psychopyfunctions import *
 
 
 #%% ===========================================================================
@@ -233,6 +234,7 @@ for bl,block in enumerate(alltrials.blocks):
     if bl > 0:
         block_break(win,f,bl,len(alltrials.blocks))
     for cond in alltrials.blocks[block]:
+        print(cond)
         condition = alltrials.blocks[block][cond]
         for idx,trialinfo in enumerate(condition['trials']):
             fix_cross.setAutoDraw(True)

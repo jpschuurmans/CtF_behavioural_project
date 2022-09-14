@@ -1,10 +1,12 @@
 /jolien_contrast.py
 
+/data/*
 /stimuli/*.bmp
 /background/*.bmp
 /masks/*.bmp
 /test_stimuli_ignore
 /__pycache__
+
 
 
 
