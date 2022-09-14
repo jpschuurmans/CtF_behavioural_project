@@ -1,0 +1,4 @@
+block,trialno,stim1,stim2,matching,mask,duration,nframes,SF,background,staircasenr,rt,acc,contrast
+block-1,0,ID01_IM01.bmp,ID01_IM06.bmp,same,BG01_ID01_IM01_HSF.bmp,150,9,HSF,BG01.bmp,1,3.418665899996995,1,33.00978026836224
+block-1,1,ID03_IM04.bmp,ID05_IM03.bmp,diff,BG02_ID03_IM04_HSF.bmp,150,9,HSF,BG02.bmp,2,1.460791599994991,1,33.00978026836224
+block-1,2,ID04_IM06.bmp,ID04_IM02.bmp,same,BG02_ID04_IM06_HSF.bmp,150,9,HSF,BG02.bmp,2,0.7019732000044314,0,33.00978026836224

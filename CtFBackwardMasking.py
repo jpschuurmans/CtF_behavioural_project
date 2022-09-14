@@ -47,6 +47,11 @@ durations = ['50','100','150']
 matching = ['same','diff']
 staircases = ['1','2']
 
+#desired luminance and contrast of images
+LC = [.225, .9] # [0.45, 0.1] if between 0 and 1
+#occluded_image = (occluded_image*LC[1]) + LC[0]   # desired luminance and contrast
+
+
 
 #%% ===========================================================================
 # monitor setup + subject info
@@ -99,11 +104,13 @@ nframe = num_frames(fix_dur,int_dur,mask_dur,framelength)
 # get names of all images folders. Naming should be:
 # stimulus: ID01_IM01.bmp / mask: BG01_ID01_IM01_LSF.bmp / background: BG01.bmp
 # returns self.path and self.stim (list of names)
-stim = Stimuli(stim_path) 
+stim = Stimuli(stim_path)
+back = Stimuli(back_path)
 
 # returns list with unique dr of IDs or IMs self.unique_nr
 stim.getuniquenr('ID')
 stim.getuniquenr('IM')
+back.getuniquenr('BG')
 
 # returns self.same_list / self.diff_list / self.maxnr_trials 
 stim.list_of_combinations()
@@ -128,7 +135,7 @@ trials_per_block = 16 # that is 8 per staircase
 
 # creates self.blocks['block-1']['HSF_50']['stair-1'][0] 
 # in this case: 8 blocks, 6 conditions, 2 staircases, 16 trials
-alltrials.make_miniblocks(n_bigblock,miniblock_per_bigblock,trials_per_block)
+alltrials.make_miniblocks(n_bigblock,miniblock_per_bigblock,trials_per_block,back.unique_nr['BG'])
     
 
 
@@ -145,8 +152,6 @@ steps = 30
 alltrials.prepare_staircare(nTrials,signal_start,signal_end,steps)
 
 
-
-
 #%% ===========================================================================
 # open file csv log file to write the data
 
@@ -157,31 +162,48 @@ data_fname = exp_info['1. subject'] + '_' + exp_info['2. gender'] +  exp_info['3
 data_fname = os.path.join(data_path, data_fname)
 f = open(data_fname,'w',encoding='UTF8', newline='')
 
-header_names = list(alltrials.blocks['block-1']['HSF_100']['stair-1'][0].keys())
+header_names = list(alltrials.blocks['block-1']['HSF_100']['trials'][0].keys())
 
 writer=csv.DictWriter(f, fieldnames=header_names)
 writer.writeheader()
 
                            
 #%% ===========================================================================
-# prepare clock
-change_clock = core.Clock()
-rt_clock = core.Clock()
-
-#%% ===========================================================================
 # Prepare/open window
 win = visual.Window(monitor = mon, size = scrsize, color ='grey', units ='pix', fullscr = True)
 
 
-textpage = visual.TextStim(win, height=32, font="Palatino Linotype", alignHoriz='center' )
+
+# prepare bitmaps for presenting images
+stimsize = [550,550]
+
+bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'mask' : [], 'stim2' : []}
+
+for bit in bitmap:
+    bitmap[bit] = visual.ImageStim(win, size=stimsize, interpolate=True)
+    bitmap[bit].setOri(180) # need to do this because somehow the images are inverted.....
+
+# draw fixation cross
+fix_cross = visual.ShapeStim(win, 
+    vertices=((0, -0.3), (0, 0.3), (0,0), (-0.3,0), (0.3, 0)),
+    lineWidth=30,
+    closeShape=False,
+    lineColor="black"
+    )
+
+#%% ===========================================================================
+# instruction screen
+
+textpage = visual.TextStim(win, height=32, font="Palatino Linotype", alignHoriz='center', wrapWidth=scrsize[0])
 
 instructiontexts = {
     1 : """In this experiment, you will see two faces displayed
-    one after another.\n Your task is to report whether the two 
+    one after another.\n\n Your task is to report whether the two 
     faces have the same identity.""",
-    2 : """If both pictures are of the SAME person, press "S",\n
-    if they  are different people, press "L"\n\n 
-    Press SPACE key to continue."""
+    2 : """If both pictures are of the SAME person press "S".\n
+    If they are different people, press "L".\n\n 
+    Press SPACE key to continue.""",
+    3 : """ READY """
     }
 
 for text in instructiontexts:
@@ -195,202 +217,82 @@ for text in instructiontexts:
 
 # Hide cursor when window is open
 win.mouseVisible=False
-
+# win.mouseVisible=True
 
 # for debugging: win.close()
 
-#%% ===========================================================================
-# draw fixation Cross
-fixation = visual.ShapeStim(win, 
-    vertices=((0, -0.3), (0, 0.3), (0,0), (-0.3,0), (0.3, 0)),
-    lineWidth=3,
-    closeShape=False,
-    lineColor="black"
-    )
-
-# prepare bitmaps for presenting images
-stimsize = [7.05,8.38]
-bitmap1 = visual.ImageStim(win, size=stimsize, interpolate=True) 
-bitmap2 = visual.ImageStim(win, size=stimsize, interpolate=True) 
-bitmap_mask = visual.ImageStim(win, size=stimsize, interpolate=True)
-
-
 
 #%% ===========================================================================
+change_clock = core.Clock()
+rt_clock = core.Clock()
 
-
-trialinfo = alltrials.blocks['block-1']['HSF_100']['stair-1'][0]
-visibility = alltrials.blocks['block-1']['HSF_100']['stair-1_Psi']
-
-draw = loadimage(base_path, trialinfo, visibility)
-
-############################# blending mask is missing !
-
-
-
-
+#from functions_ctfbackwardmasking import *
 
 # Start experiment
-i=0
-block_no = -1
-for block in final_blocks:
-    block_no += 1
-    if block_no > 0:
-        block_break(block_no)
-    for trial in block:
-        if trial['ori']=='up':
-            ori=180
-            if trial['cond'][0] == 's' :
-                while sameup.xCurrent == None:
-                    pass # hang in this loop until the psi calculation has finished
-                visibility = sameup.xCurrent
-            elif trial['cond'][0] == 'd':
-                while diffup.xCurrent == None:
-                    pass
-                visibility = diffup.xCurrent
-            elif trial['cond'][0] == 'i':
-                while isoup.xCurrent == None:
-                    pass
-                visibility = isoup.xCurrent
-        else:
-            ori=0
-            if trial['cond'][0] == 's':
-                while sameinv.xCurrent == None:
-                    pass # hang in this loop until the psi calculation has finished
-                visibility = sameinv.xCurrent
-            elif trial['cond'][0] == 'd':
-                while diffinv.xCurrent == None:
-                    pass
-                visibility = diffinv.xCurrent
-            elif trial['cond'][0] == 'i':
-                while isoinv.xCurrent == None:
-                    pass
-                visibility = isoinv.xCurrent
+for bl,block in enumerate(alltrials.blocks):
+    if bl > 0:
+        block_break(win,f,bl,len(alltrials.blocks))
+    for cond in alltrials.blocks[block]:
+        condition = alltrials.blocks[block][cond]
+        for idx,trialinfo in enumerate(condition['trials']):
+            fix_cross.setAutoDraw(True)
+            staircase = condition[f'stair-{trialinfo["staircasenr"]}']
+            nframe['stim1'] = trialinfo['nframes']
             
-        im1=np.array(Image.open(os.path.join(stim_path,trial['im1name'])))
-        im2=np.array(Image.open(os.path.join(stim_path,trial['im2name'])))
-        mask=(np.array(Image.open(os.path.join(mask_path,trial['mask']))))/256
-        im1us=occlude(im1,visibility)
-        im1=(im1us-127.5)/127.5
-        im2us=occlude(im2,visibility)
-        im2=(im2us-127.5)/127.5
-        mask_occluded=occlude(mask, visibility)
-        maskfinal=(mask_occluded-127.5)/127.5 # .5 is the midvalue so you'd do (x-.5)/.5
-        
-        bitmap1.setOri(ori)
-        bitmap2.setOri(ori)
-        bitmap_mask.setOri(ori)
-        
-        # you don't need this
-        if trial['ori']== 'up':
-            eyeleveling=-1.18 
-            # eyeleveling=-1.38
-        else:
-            eyeleveling=1.18
-            # eyeleveling=1.38
-        
-        bitmap1.pos=(0,eyeleveling) #142+284/2 (5.1 is equal to 142 pixels, then we add half of the horizontal size (7/2) because pos. takes the center to the defined location.)
-        bitmap2.pos=(0,eyeleveling)
-        bitmap_mask.pos=(0,eyeleveling)
-        
-        
-        
-        
-         
-        bitmap1.setImage(im1)
-        bitmap2.setImage(im2)
-        bitmap_mask.setImage(maskfinal)
-        
-        for nFrames in range(FixFrame): # 600 ms.
-                fixation.draw()
-                win.flip()
-                
-        for nFrames in range(IntFrame):  # 500 ms
-                win.flip()
+            while staircase.xCurrent == None:
+                pass
+            trialinfo['contrast'] = staircase.xCurrent
             
-        for nFrames in range(ImFrame): # 500 ms
-                bitmap1.draw()
-                win.flip()
-                    
-        for nFrames in range(MaskFrame): # 200 ms
-               bitmap_mask.draw() # We don't have a mask right now
-               win.flip()
-               
-               
-        bitmap2.draw()
-        win.flip()
-        change_clock.reset()
-        rt_clock.reset()
-                                        
-        # Wait until a response, or until time limit.
-        # keys = event.waitKeys(maxWait=timelimit, keyList=['s','l', 'escape'])
-                 
-        keys = event.waitKeys(keyList=['s','l','escape','p'])     
-        if keys:
-            rt = rt_clock.getTime()
-            # fixation.clearTextures()
-            
-        bitmap1.clearTextures()
-        bitmap2.clearTextures()
-        win.flip()
-        
-        if not keys:
-            keys = event.waitKeys(keyList=['s','l','escape'])
-            rt = rt_clock.getTime()
-                           
-        acc = 0
-        if keys:
-            if 'escape' in keys:
-                f.close()
-                win.close()
-                # exTrials.saveAsWideText('Exp_full' + '.csv', delim=',')
-                win.mouseVisible=True
-                break
-            elif 's' in keys and (trial['cond'] == 'ss' or trial['cond'] == 'ds' or trial['cond'] == 'isos'): # is same
-                acc = 1
-            elif 'l' in keys and (trial['cond'] == 'sd' or trial['cond'] == 'dd' or trial['cond'] == 'isod'): # is different
-                acc = 1         
-                
-        trial['acc']=acc
-        trial['rt']=rt
-        trial['contrast']=visibility
-        trial['trialno']=i
-        # exTrials.addData('acc', acc)
-        # exTrials.addData('rt', rt)
-        # exTrials.addData('visib',visibility)
-        i+=1
+            #load stim1, stim2 and mask
+            drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC)
 
-        # Update staircase        
-        
-        ''' elegantere shii dan een if else loop
-        obj = {
-            's': samup.addDaga(acc)
-            'd':  diffup.addData(acc)
-            }
-        
-        obj['s']
-        '''
-        
-        if ori==180:
-            if trial['cond'][0] == 's' :
-                sameup.addData(acc)
-            elif trial['cond'][0] == 'd':
-                diffup.addData(acc)
-            elif trial['cond'][0] == 'i':
-                isoup.addData(acc)
-        else:
-            if trial['cond'][0] == 's':
-                sameinv.addData(acc)
-            elif trial['cond'][0] == 'd':
-                diffinv.addData(acc)
-            elif trial['cond'][0] == 'i':
-                isoinv.addData(acc)
-        writer.writerow(trial)
+            #set stim1, stim2 and mask
+            for drawit in bitmap:                    
+                bitmap[drawit].setImage(drawed[drawit])
+
+            #### trial windows 
+            for window in bitmap:
+                if window == 'int':
+                    fix_cross.setAutoDraw(False)
+                for nFrames in range(nframe[window]):
+                    bitmap[window].draw()
+                    win.flip()
+
+            
+            change_clock.reset()
+            rt_clock.reset()
+                                            
+            # Wait until a response, or until time limit.
+            # keys = event.waitKeys(maxWait=timelimit, keyList=['s','l', 'escape'])
+            keys = event.waitKeys(keyList=['s','l','escape','p'])    
+            bitmap['fix'].draw()
+            fix_cross.setAutoDraw(True)
+            win.flip()
+            if keys:
+                trialinfo['rt'] = rt_clock.getTime()
+                # fixation.clearTextures()
+            
+            for drawit in bitmap:
+                bitmap[drawit].clearTextures()
+
+            trialinfo['acc'] = 0
+            if keys:
+                escape_check(keys,win,f)
+                if 's' in keys and (trialinfo['matching'] == 'same'): # is same
+                    trialinfo['acc'] = 1
+                elif 'l' in keys and (trialinfo['matching'] == 'diff'): # is different
+                    trialinfo['acc'] = 1         
+            
+            trialinfo['trialno'] = idx
+            trialinfo['block'] = block
+            
+            #update staircase
+            staircase.addData(trialinfo['acc'])
+            
+            writer.writerow(trialinfo)
 
 f.close()
-# exTrials.saveAsWideText('Exp_full' + '.csv', delim=',')
 win.close()
-win.mouseVisible=True
 
 
 #%% =============================================================================

@@ -26,7 +26,7 @@ def escape_check(keys,win,f):
     if 'escape' in keys:
         win.close()
         f.close()
-
+        
 
 def nframes(time_in_ms, framelength):
      return int(time_in_ms/framelength)
@@ -37,7 +37,9 @@ def num_frames(fix_dur, int_dur, mask_dur,framelength):
       
     nframe['fix'] = nframes(fix_dur,framelength)
     nframe['int'] = nframes(int_dur,framelength)
+    nframe['stim1'] = 1
     nframe['mask'] = nframes(mask_dur,framelength)
+    nframe['stim2'] = 1
     return nframe
 
 
@@ -52,30 +54,47 @@ def makePsi(nTrials,signal_start,signal_end,steps): # start_thresh is signal str
 # sigma is slope
 
 
-def loadimage(base_path,trialinfo,visibility):
+def loadimage(base_path,trialinfo,visibility,LC):
     # loading and occluding image ready for drawing
-    stimuli = {'stim1' : 'stimuli',
-               'stim2' : 'stimuli',
+    stimuli = {'fix' : 'background',
+               'int' : 'background',               
+               'stim1' : 'stimuli',
                'mask' : 'masks',
-               'background' : 'background'}
+               'stim2' : 'stimuli'}
     draw = {}
     all_loaded = {}
+    facepix = np.array(Image.open(f'{base_path}masks/facepix.bmp'))
     for curr in stimuli:
         stim_path = f'{base_path}{stimuli[curr]}/'
-        loaded_image = np.array(Image.open(os.path.join(stim_path,trialinfo[curr])))
-        all_loaded[curr] = loaded_image
+        if curr == 'fix' or curr == 'int':
+            image2load = trialinfo['background']
+        else:
+            image2load = trialinfo[curr]
+        loaded_image = np.array(Image.open(os.path.join(stim_path,image2load)))
+        draw[curr] = equalise_im(loaded_image,LC)
     for im in range(1,3):
-        occluded_image = occlude(all_loaded[f'stim{im}'],all_loaded['background'],visibility)
-        #occluded_image = (occluded_image-127.5)/127.5 # do I also have to do this? ############
-        draw[f'stim{im}'] = occluded_image
-    draw['mask'] = all_loaded['mask']
+        occluded_image = occlude(draw[f'stim{im}'],draw['int'],visibility)
+        occluded_image = equalise_im(occluded_image,LC)
+        draw[f'stim{im}'] = replace_background(occluded_image,draw['int'],facepix)
+    draw['mask'] = replace_background(draw['mask'],draw['int'],facepix)
     return draw
 
+def equalise_im(loaded_image, LC):
+    loaded_image = 2.*(loaded_image - np.min(loaded_image)) / np.ptp(loaded_image)-1 # equalise image
+    #loaded_image = (loaded_image*LC[1]) + LC[0]   # desired luminance and contrast
+    return loaded_image
 
+def replace_background(equalised_image, background_image, facepix):
+        new_im = np.empty(np.shape(equalised_image))
+        for iy, ix in np.ndindex(new_im.shape):
+            if facepix[iy, ix] == 0:
+                new_im[iy, ix] = background_image[iy, ix]
+            elif facepix[iy, ix] == 255:
+                new_im[iy, ix] = equalised_image[iy, ix]               
+        return new_im
 
-def occlude(image, back, visibility):
+def occlude(image, back, signal):
     fullAlpha = 255 # highest image pixel value
-    signal = visibility.xCurrent
     # create Alpha channel array for the image, fill it with 255s
     imHeight, imWidth = image.shape[:]
     srcA = np.full([imHeight,imWidth], fullAlpha)
@@ -92,32 +111,26 @@ def occlude(image, back, visibility):
     return blend
 
 
-def block_break(block_no):
+def block_break(win, f, block_no,maxblock):
     timer=3
     # timer=1
-    blocktext = visual.TextStim(
-                    win=win,
-                    height=.5,
-                    font="Palatino Linotype",
-                    alignHoriz='center'
-                    )   
-    timertext = visual.TextStim(win=win,
-            height=.5, 
-            pos=[0,-5],
-            font="Palatino Linotype",
-            alignHoriz = 'center')
+    blocktext = visual.TextStim(win,height=32, font="Palatino Linotype",alignHoriz='center',wrapWidth=1000)   
+    timertext = visual.TextStim(win,height=32, pos=[0,-300], font="Palatino Linotype",alignHoriz='center')   
+    
+    
     if block_no % 6 == 0:
         timer=20
         # timer=0
-    blocktext.text="""Please take a short rest before the next block.
-    You can press "SPACE" to start again 
-    after """ + str(timer) + """ seconds when you are ready.
-
-    Block: """ + str(block_no) + """/48"""
+        
+    blocktext.text = f"""Please take a short rest before the next block.
+    You can press "SPACE" to start again after {timer} seconds\n when you
+    are ready.\n\n Block: {block_no}/{maxblock}"""
+    
     for time in range(timer):
-        timer-=1
+        timer -= 1
         blocktext.draw()
-        timertext.text=""":""" + str(timer)
+        
+        timertext.text = """:""" + str(timer)
         timertext.draw()
         core.wait(1)
         win.flip()
@@ -126,10 +139,10 @@ def block_break(block_no):
             blocktext.draw()
             timertext.draw()
             win.flip()
+            
     keys = event.waitKeys(keyList=['space','escape'])
-    if 'escape' in keys:
-        win.close()
-        f.close()
+    escape_check(keys,win,f)
+    
     win.flip()
     core.wait(2)
 
@@ -221,7 +234,7 @@ class Ordertrials(object):
                                 for stair in self.stair: #two staircases per condition
                                     trial_name = f'{SF}_{dur}_{trialtype}_{stair}' # trial type name
                                     #the two backgrounds will alternate depening on the staircase nr
-                                    back = f'BG0{str(int(stair)+1)}.bmp'
+                                    #back = f'BG0{str(stair)}.bmp' ################################### if using this, also change self.trial_list
                                     num1 = round(random.random())
                                     if num1 == 0: # randomise which image is presented as image1
                                         num2 = 1 # making sure image 2 is the other image... :)
@@ -231,18 +244,22 @@ class Ordertrials(object):
                                     # the conditions are SF*duration (2*3 = 6 in the example)
                                     # this is doubled to have the same/diff conditions for the matching task (2*6 = 12)
                                     # this is doubled because there are 2 staircases per condition (2*12 = 24)
-                                    self.trial_list[trial_name].append({'stim1' : combi_per_id[num1],
-                                                                 'stim2' : combi_per_id[num2],
-                                                                 'duration' : dur,
-                                                                 'nframes' : ImFrame,
-                                                                 'SF' : SF,
-                                                                 'mask' : f'{back[:-4]}_{combi_per_id[num1][:-4]}_{SF}.bmp',
-                                                                 'background' : back,
-                                                                 'staircasenr': stair,
-                                                                 'rt' : 0,
-                                                                 'acc' : 0,
-                                                                 'contrast' : 0,
-                                                                 'trialno' : 0})  
+                                    self.trial_list[trial_name].append({
+                                        'block' : [],
+                                        'trialno' : 0,
+                                        'stim1' : combi_per_id[num1],
+                                        'stim2' : combi_per_id[num2],
+                                        'matching' : trialtype,
+                                        #'mask' : f'{back[:-4]}_{combi_per_id[num1][:-4]}_{SF}.bmp',
+                                        'mask' : f'{combi_per_id[num1][:-4]}_{SF}.bmp',
+                                        'duration' : dur,
+                                        'nframes' : ImFrame,
+                                        'SF' : SF,
+                                        'background' : [],
+                                        'staircasenr': stair,
+                                        'rt' : 0,
+                                        'acc' : 0,
+                                        'contrast' : 0})  
                                     
     def shuffle_trials(self):
         # here we shuffle trials from each condition within the condition block
@@ -250,33 +267,35 @@ class Ordertrials(object):
             rnd.shuffle(self.trial_list[f"{cond}"])
           
             
-    def make_miniblocks(self,n_bigblock,miniblock_per_bigblock,trials_per_block):
+    def make_miniblocks(self,n_bigblock,miniblock_per_bigblock,trials_per_block,unique_back):
         # to make all the blocks ready
         # big blocks containing smaller blocks (small block = one condition per block)
         # small blocks contain trails. half same, half different trials.
         self.n_bigblock = n_bigblock
         self.miniblock_per_bigblock = miniblock_per_bigblock
         self.trials_per_block = trials_per_block
-        self.blocks = {}    
-    
+        self.blocks = {}
+        background_numbers = np.repeat(unique_back, int(np.ceil(n_bigblock/np.size(unique_back))))
+        np.random.shuffle(background_numbers)
         mini_blocks = {}
         stair = {}
         tempblock=[]
         blocklist = {}
-        
         for bblock in range(n_bigblock):
             name = f'block-{bblock+1}'
             for idx,cond in enumerate(self.conditionlist):
+                back_num = background_numbers[idx]
                 for stairnr in self.stair:
-                # for every mini block, grab 8 unique trials.. and go on to the next trial
-                    for trial in range(int(trials_per_block/len(self.stair))): # 8 trials of one condition per block
-                        #tempblock[f'trial-{trial}_diff']= self.trial_list[f'{cond}_diff_{stairnr}'][trial*(idx+1)]
-                        #tempblock[f'trial-{trial}_same'] = self.trial_list[f'{cond}_same_{stairnr}'][trial*(idx+1)]
-                        tempblock.append(self.trial_list[f'{cond}_diff_{stairnr}'][trial*(idx+1)])
-                        tempblock.append(self.trial_list[f'{cond}_same_{stairnr}'][trial*(idx+1)])
-                    rnd.shuffle(tempblock)
-                    stair[f'stair-{stairnr}'] = tempblock
-                    tempblock=[]
+                    # for every mini block, grab 8 unique trials.. and go on to the next trial
+                    for trial in range(int((trials_per_block/len(self.stair))/2)): # 8 (4same/4diff) trials of one condition per block
+                        for matching in self.match:
+                            trial2add = copy.deepcopy(self.trial_list[f'{cond}_{matching}_{stairnr}'][trial*(idx+1)])
+                            trial2add['mask'] = f'BG0{back_num}_{trial2add["mask"]}'
+                            trial2add['background'] = f'BG0{back_num}.bmp'
+                            tempblock.append(trial2add)                   
+                rnd.shuffle(tempblock)
+                stair['trials'] = tempblock
+                tempblock=[]
                 mini_blocks[cond] = stair
             blocklist[name] = mini_blocks
         self.blocks = blocklist
@@ -285,7 +304,7 @@ class Ordertrials(object):
         for block in self.blocks:
             for cond in self.blocks[block]:
                 for stairnr in self.stair:
-                    self.blocks[block][cond][f'stair-{stairnr}_Psi'] = makePsi(nTrials,signal_start,signal_end,steps)
+                    self.blocks[block][cond][f'stair-{stairnr}'] = makePsi(nTrials,signal_start,signal_end,steps)
         
 
  # =============================================================================       
