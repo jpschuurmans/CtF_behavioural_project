@@ -5,7 +5,7 @@
 /MainExp_code/masks/*.bmp
 
 /stimuli_matlab/*/*
-
+/stimuli_matlab/*.mat
 
 
 

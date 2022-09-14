@@ -5,30 +5,62 @@
 
 close all; clear; clc
 
-basefolder = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/stimuli_matlab/';
+basefolder = '/home/jschuurmans/Documents/02_recurrentSF_3T/recurrentSF_3T_CodeRepo/stimuli_matlab/';
 outfolder_stim = [basefolder 'stimuli/'];
 outfolder_back = [basefolder 'background/'];
-load([basefolder 'CTFV1_STIM.mat'])
+load([basefolder 'CTFV1_PROC.mat'])
 addpath(basefolder)
 
-backgrounds = 8;
+load([basefolder 'CTFV1_BACK.mat'],'LC','*back', 'imset','nim','nblockspercondition')
+
+backgrounds = 8
+
 
 outputmat = 'CTFV1_BLEND.mat';
 
-%%%%%%%%%%%% load this blurry mask
-%%%%%%%%%%%% make sure the face is just as big as the stimuli
-[MaskIm,~,MaskAlpha] = (imread([basefolder 'blurrymask.bnp']));
-%MaskAlpha = single(MaskAlpha);
+%load([basefolder 'CTFV1_BLEND.mat'])
+scalefactor = [3 2];
+xySize = size(imset.eq_stim{1});
+finalSize = [550,550];
+padSize = round((finalSize - xySize)/2);
 
-MaskAlpha = padarray(MaskAlpha,[round(paddims/2) round(paddims/2)],'replicate'); % pad to get the same dimensions as background image.
-MaskAlpha = im_stimb(1:desired_size(1),1:(desired_size));
+[MaskIm,~,MaskAlpha] = (imread([basefolder 'blurrymask.png']));
+MaskAlpha = single(MaskAlpha); MaskAlpha = imresize(MaskAlpha,(1/scalefactor(1)));
+
+
+cut = round((length(MaskAlpha)-finalSize(1))/2);
+MaskAlpha = MaskAlpha./max(MaskAlpha(:));
+MaskAlpha = MaskAlpha(cut:end-(cut+1),cut:end-(cut+1));
 
 
 imshow(MaskAlpha)
 imshow(1-MaskAlpha)
 
-MaskAlpha = padarray(MaskAlpha,[round(paddims/2) round(paddims/2)],'replicate'); % pad to get the same dimensions as background image.
-MaskAlpha = im_stimb(1:desired_size(1),1:(desired_size));
+%MaskAlpha = imresize(MaskAlpha,1.2,'nearest');
+%%%%%%%%%%%%%% is necessary for selecting backgroundpixels since
+%%%%%%%%%%%%%% the blurrymask contains pixels in the border of
+%%%%%%%%%%%%%% the outline with the same value as the background 
+%making average mask for normalization of noise
+blobFinding = MaskAlpha;
+blobFinding(blobFinding == blobFinding(1,1)) = 1; % making the background more distinct
+s = regionprops(blobFinding == 1 , 'Area', 'PixelList'); % to create the mask, check where the value is 1
+t = regionprops(blobFinding == 0 , 'Area', 'PixelList');
+blobs = [s.Area].'; % checking where blobs excist adjecent areas with pix value 1
+blobsFace = [t.Area].';
+ind = find(blobs == blobs(1)); % index these pixels 
+indFace = find(blobsFace == blobsFace(1));
+pix = s(ind).PixelList; % finding the "pixels" it belongs to
+pixFace = t(indFace).PixelList; 
+
+
+%creating the mask
+MaskBack = logical(full(sparse(pix(:,2), pix(:,1), 1, size(blobFinding,1), size(blobFinding,2))));
+MaskFace = logical(full(sparse(pixFace(:,2), pixFace(:,1), 1, size(blobFinding,1), size(blobFinding,2))));
+%imshow(MaskBack)
+%imshow(MaskFace)
+imwrite(MaskFace,[basefolder 'MaskFace'],'BMP')
+imwrite(MaskBack,[basefolder 'MaskBack'],'BMP')
+
 
 signalcontrast = 0.45;
 alpha = 1-signalcontrast;

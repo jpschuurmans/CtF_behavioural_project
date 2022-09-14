@@ -102,40 +102,40 @@ for theim = 1:length(nim)
 end
 
 %% amplitude spectrum 
-SFres = 20; % resolution of SF sampling (n SF bins) 
+%SFres = 20; % resolution of SF sampling (n SF bins) 
 % the range we will work with going from 1 c/image to m*sqrt(2) c/image, m being size(im,1)
-
-for theim = 1:length(nim)
-
-    im_stim = imset.iter_stim{theim};
-    im_stim = (im_stim/std2(im_stim)) - mean2(im_stim);
-    AmpPlot_VG2(im_stim,SFres,1);% AmpPlot(im,<NoScaleBins>,<NoOrientBins>,<graphics>)
-    load([basefolder 'amplot.mat'])
-    %load('C:\Users\vgoffaux\Documents\MATLAB\amplot');
-    %     imset.SFslope{theim} = p(1);
-    SFspec.SFhist(theim,:) = AmpHist;
-    SFspec.SFslope{theim} = p;
-    SFspec.linSF{theim} = PredAmp;                                       % And the predicted amplitude based on fitted line
+%
+%for theim = 1:length(nim)
+%
+%    im_stim = imset.iter_stim{theim};
+%    im_stim = (im_stim/std2(im_stim)) - mean2(im_stim);
+%    AmpPlot_VG2(im_stim,SFres,1);% AmpPlot(im,<NoScaleBins>,<NoOrientBins>,<graphics>)
+%    load([basefolder 'amplot.mat'])
+%    %load('C:\Users\vgoffaux\Documents\MATLAB\amplot');
+%    %     imset.SFslope{theim} = p(1);
+%    SFspec.SFhist(theim,:) = AmpHist;
+%    SFspec.SFslope{theim} = p;
+%    SFspec.linSF{theim} = PredAmp;                                       % And the predicted amplitude based on fitted line
 %     subplot(round(length(nim)/5),round(length(nim)/round(length(nim)/5)),theim)
 %     loglog(exp(fineScale),PredAmp,'k-')
 %     loglog(Scales,sum(AmpHist,2)','ko',exp(fineScale),PredAmp,'b-')
 %      legend(sprintf('Slope of amplitude spectrum is %3.3f ',p(1)));
-end
-
-allsfslope = vertcat(SFspec.SFslope{:});
-SFspec.SFslope_ga = {mean(allsfslope,1) std(allsfslope,1)};
-SFspec.SFhist_ga = {mean(SFspec.SFhist,1) std(SFspec.SFhist,1)};
-
-
-close all; 
-set(0,'defaultlinelinewidth',3)
-lineIM = cool(length(nim));
-figure('Position', [100, 100, 1000, 1000],'Color',[1 1 1]);
-plot(log(Scales),log(SFspec.SFhist_ga{1}));
-title('Amplitude as a function of SF (log)'); xlabel('log SF (c/image)');ylabel('Amplitude');
-
-loglog(Scales,sum(AmpHist,2)','bd',exp(fineScale),PredAmp,'b-')
-
+%end
+%
+%allsfslope = vertcat(SFspec.SFslope{:});
+%SFspec.SFslope_ga = {mean(allsfslope,1) std(allsfslope,1)};
+%SFspec.SFhist_ga = {mean(SFspec.SFhist,1) std(SFspec.SFhist,1)};
+%
+%
+%close all; 
+%set(0,'defaultlinelinewidth',3)
+%lineIM = cool(length(nim));
+%figure('Position', [100, 100, 1000, 1000],'Color',[1 1 1]);
+%plot(log(Scales),log(SFspec.SFhist_ga{1}));
+%title('Amplitude as a function of SF (log)'); xlabel('log SF (c/image)');ylabel('Amplitude');
+%
+%loglog(Scales,sum(AmpHist,2)','bd',exp(fineScale),PredAmp,'b-')
+%
 %[...] compute AUC and define LSF and HSF cutoff that energy is similar 
 
 
@@ -161,7 +161,7 @@ LSFcutoff = [maxSF/(2^(octwidth*2+gapOct)) (maxSF/(2^(octwidth*2+gapOct)))*2^oct
 HSFcutoff = [maxSF/2^octwidth maxSF]; %4 octaves -- making 2 ranges adjecent
 
 for theim=1:length(nim)
-    daimage=imset.iter_stim{theim};
+    daimage=imset.iter_back{theim};
     fftimage=fftshift(fft2(daimage,desired_size(1), desired_size(2)));
     amplim{theim}=abs(fftimage);
     phasim{theim}=angle(fftimage);
