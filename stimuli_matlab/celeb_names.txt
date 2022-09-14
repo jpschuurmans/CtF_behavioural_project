@@ -1,0 +1,18 @@
+01	Ben Affleck
+02	Ben Stiller
+03	Brad Pitt
+04	Daniel Craig
+05	Daniel Radcliffe
+06	Elijah Woods
+07	George Clooney
+08	Hugh Jackman
+09	Justin Timberlake
+10	Keanuu Reeves
+11	Leonardo DiCaprio
+12	Matt Damon
+13	Orlando Bloom
+14	Partick Dempsey
+15	Robert Downey Jr
+16	Robert Pattinson
+17	Rayan Gosling
+18	Rayan Reynolds

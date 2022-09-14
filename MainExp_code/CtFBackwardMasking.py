@@ -14,7 +14,7 @@ Psychophysical coarse-to-fine backward masking.
 #%% ===========================================================================
 # paths
 
-base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/MainExp/'
+base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
 
 stim_path = f'{base_path}stimuli/'
 mask_path = f'{base_path}masks/'

@@ -1,12 +1,10 @@
-/jolien_contrast.py
+/MainExp_code/__pycache__
+/MainExp_code/data/*
+/MainExp_code/stimuli/*.bmp
+/MainExp_code/background/*.bmp
+/MainExp_code/masks/*.bmp
 
-/data/*
-/stimuli/*.bmp
-/background/*.bmp
-/masks/*.bmp
-/test_stimuli_ignore
-/__pycache__
-
+/stimuli_matlab/*/*
 
 
 
