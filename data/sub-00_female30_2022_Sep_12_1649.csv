@@ -1,2 +1,0 @@
-block,trialno,stim1,stim2,matching,mask,duration,nframes,SF,background,staircasenr,rt,acc,contrast
-block-1,0,ID02_IM03.bmp,ID01_IM04.bmp,diff,BG01_ID02_IM03_HSF.bmp,150,9,HSF,BG01.bmp,1,3.791287599997304,0,33.00978026836224
