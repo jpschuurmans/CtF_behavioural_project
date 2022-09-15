@@ -106,15 +106,14 @@ nframe = num_frames(fix_dur,int_dur,mask_dur,framelength)
 # stimulus: ID01_IM01.bmp / mask: BG01_ID01_IM01_LSF.bmp / background: BG01.bmp
 # returns self.path and self.stim (list of names)
 stim = Stimuli(stim_path)
-back = Stimuli(back_path)
 
 # returns list with unique dr of IDs or IMs self.unique_nr
 stim.getuniquenr('ID')
 stim.getuniquenr('IM')
-back.getuniquenr('BG')
+stim.getuniquenr('BG')
 
 # returns self.same_list / self.diff_list / self.maxnr_trials 
-stim.list_of_combinations()
+stim.list_of_combinations(stim.unique_nr['BG'])
 
 
 
@@ -136,7 +135,7 @@ trials_per_block = 16 # that is 8 per staircase
 
 # creates self.blocks['block-1']['HSF_50']['stair-1'][0] 
 # in this case: 8 blocks, 6 conditions, 2 staircases, 16 trials
-alltrials.make_miniblocks(n_bigblock,miniblock_per_bigblock,trials_per_block,back.unique_nr['BG'])
+alltrials.make_miniblocks(n_bigblock,miniblock_per_bigblock,trials_per_block,stim.unique_nr['BG'])
     
 
 
@@ -145,9 +144,9 @@ alltrials.make_miniblocks(n_bigblock,miniblock_per_bigblock,trials_per_block,bac
 
 # nTrials is trials PER staircase
 nTrials = int((trials_per_block/len(alltrials.stair))*n_bigblock)
-signal_start = 30 # signal of blending (e.g. signal = 30, alpha = 70)
-signal_end = 60
-steps = 30
+signal_start = 100 # signal of blending (e.g. signal = 30, alpha = 70)
+signal_end = 50
+steps = 40
 
 # initialize a staircase for each condition
 alltrials.prepare_staircare(nTrials,signal_start,signal_end,steps)

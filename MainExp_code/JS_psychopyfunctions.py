@@ -58,7 +58,9 @@ def occlude(image, back, signal):
     
     # reduce Alpha transparency of image / background
     srcA[:, :] = fullAlpha -((100-signal)/100*fullAlpha)
+
     backA[:, :] = ((100-signal)/100*fullAlpha)
+    
     # blend them into a single image
     blend=(image*(srcA/fullAlpha))+(back*(backA/fullAlpha))
     # visualise: Image.fromarray(blend.astype('uint8'))

@@ -25,6 +25,8 @@ MaskAlpha = MaskAlpha(1:desired_size(1),1:(desired_size));
 
 MaskAlpha = single(MaskAlpha);
 MaskAlpha = MaskAlpha./max(MaskAlpha(:));
+imwrite(MaskAlpha,[outfolder_mask 'alphamask.bmp'],'BMP')
+
 
 ellipseBack = find(MaskAlpha == 1);
 ellipseCenter = find(MaskAlpha < 1);
@@ -94,10 +96,10 @@ for theback = 1:backgrounds % for all scrambled backgrounds
             % saving the stimuli with correct naming
             if thestim == 1
                 name = [backname '_' nim(theface).name];
-                imwrite(blendim,[outfolder_stim name '.bmp'],'BMP')
+                imwrite(blendim,[outfolder_stim name],'BMP')
             else
                 name = [backname '_' nim(theface).name(1:end-4) '_' stimuli{thestim} nim(theface).name(end-3:end)];
-                imwrite(blendim,[outfolder_mask name '.bmp'],'BMP')
+                imwrite(blendim,[outfolder_mask name],'BMP')
             end
 
         end
