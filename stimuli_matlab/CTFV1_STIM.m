@@ -96,6 +96,7 @@ for theim = 1:length(nim)
 %         imshow(iterscrface_stim{theiter}),[]);
     end
     scrimage = phaseScrambleImage(iterscrface_stim{theiter});
+    scrimage = mat2gray(scrimage);
     scrimage = (scrimage-mean2(scrimage))/std2(scrimage);
     imset.iter_back{theim} = scrimage;
 %     imshow(imset.iter_stim{theim},[]);

@@ -6,8 +6,9 @@
 close all; clear; clc
 
 basefolder = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/stimuli_matlab/';
-outfolder_stim = [basefolder 'stimuli/'];
-outfolder_back = [basefolder 'background/'];
+outfolder_stim = [basefolder 'finalstim/stimuli/'];
+outfolder_back = [basefolder 'finalstim/background/'];
+outfolder_mask = [basefolder 'finalstim/masks/'];
 load([basefolder 'CTFV1_STIM.mat'])
 addpath(basefolder)
 
@@ -17,25 +18,25 @@ outputmat = 'CTFV1_BLEND.mat';
 
 %%%%%%%%%%%% load this blurry mask
 %%%%%%%%%%%% make sure the face is just as big as the stimuli
-[MaskIm,~,MaskAlpha] = (imread([basefolder 'blurrymask.bnp']));
-%MaskAlpha = single(MaskAlpha);
-
+[MaskIm,~,MaskAlpha] = (imread([basefolder 'averageMask.png']));
+%imshow(MaskAlpha)
 MaskAlpha = padarray(MaskAlpha,[round(paddims/2) round(paddims/2)],'replicate'); % pad to get the same dimensions as background image.
-MaskAlpha = im_stimb(1:desired_size(1),1:(desired_size));
+MaskAlpha = MaskAlpha(1:desired_size(1),1:(desired_size));
+
+MaskAlpha = single(MaskAlpha);
+MaskAlpha = MaskAlpha./max(MaskAlpha(:));
+
+ellipseBack = find(MaskAlpha == 1);
+ellipseCenter = find(MaskAlpha < 1);
 
 
-imshow(MaskAlpha)
-imshow(1-MaskAlpha)
-
-MaskAlpha = padarray(MaskAlpha,[round(paddims/2) round(paddims/2)],'replicate'); % pad to get the same dimensions as background image.
-MaskAlpha = im_stimb(1:desired_size(1),1:(desired_size));
 
 signalcontrast = 0.45;
 alpha = 1-signalcontrast;
 SNR = signalcontrast/alpha;
 %LC = [0.45 0.1]; % desired luminance and contrast
 
-stimuli = {'Stim' 'MaskLSF' 'MaskHSF'}; %stimuli and mask
+stimuli = {'Stim' 'LSF' 'HSF'}; %stimuli and mask
 
 %preallocate for speed
 finalstim_backpixLC = cell(backgrounds,length(stimuli)); %preallocate
@@ -56,49 +57,48 @@ for theback = 1:backgrounds % for all scrambled backgrounds
         stimulus  = char(stimuli(thestim)) ;
         if thestim == 1
             set = imset.eq_stim;
-        elseif thestim == 2 %Mask LSF
+            faceset = imset.eq_stim;
+        else
             set = imset.mask(thestim-1,:);
-        elseif thestim == 3 %Mask HSF 
-            set = imset.mask(thestim-1,:);
+            faceset = imset.eq_stim;
         end
         for theface = 1:length(nim) %for all faces
-            backim = imset.iter_back{theback};
-            %imshow(backim)
-            fprintf('mean: %f - std: %f - back %d\n',mean2(backim),std2(backim),theback) % check contr and lum for the background
-            backim = backim*alpha;
+
 
             signalim = set{theface};
+            % imshow(signalim)
 
-            signalim = signalim*signalcontrast;
-            signalim =  (signalim.*(1-MaskAlpha) ) + (backim.* (MaskAlpha));			
-            blendim = signalim;
+            backim = imset.iter_back{theback};
+            backim = mat2gray(backim);
+            
+            backim = backim - mean2(backim); %normalize blend stim part 1
+            backim = backim / std2(backim); %normalize blend stim part 2
+            backim	= (backim*LC(2)) + LC(1); %desired lum and contrast
+            imset.iter_back{theback} = backim;
+            % imshow(backim)
+            
+            blendim = backim.*(MaskAlpha) + signalim.*(1-MaskAlpha);
+            % imshow(blendim)
 
-            %imshow(blendim)
             blendim = blendim - mean2(blendim); %normalize blend stim part 1
             blendim = blendim / std2(blendim); %normalize blend stim part 2
             blendim	= (blendim*LC(2)) + LC(1); %desired lum and contrast
-            fprintf('mean: %f - std: %f - face %d for type: %s %s blendedddd\n',mean2(blendim),std2(blendim),theface,stimtype,stimulus) % check contr and lum for the background
-
-            % replace background pixels of the blend image by the original ones
-            backim = imset.iter_back{theback};
-            blendim(backpixindex) = backim(backpixindex);
-            imshow(blendim); 
-
+            fprintf('mean: %f - std: %f - face %d for type: %s blendedddd\n',mean2(blendim),std2(blendim),theface,stimulus) % check contr and lum for the background
+            imshow(blendim)
+            
             imset.blendim{theback,thestim,theface} = blendim;     	
 
             finalstim_backpixLC{theback,thestim}(theface,:) = [mean(blendim(backpixindex)) std(blendim(backpixindex))]; %%%% $$$$$$
             finalstim_facepixLC{theback,thestim}(theface,:) = [mean(blendim(facepixindex)) std(blendim(facepixindex))]; %%%% $$$$$$
 
             % saving the stimuli with correct naming
-            if theface < 10
-                facenum = ['0' num2str(theface)];
+            if thestim == 1
+                name = [backname '_' nim(theface).name];
+                imwrite(blendim,[outfolder_stim name '.bmp'],'BMP')
             else
-                facenum = num2str(theface);
-            end                
-
-            name = [backname '_' stimulus '_' facenum];
-
-            imwrite(blendim,[outfolder_stim name '.bmp'],'BMP')
+                name = [backname '_' nim(theface).name(1:end-4) '_' stimuli{thestim} nim(theface).name(end-3:end)];
+                imwrite(blendim,[outfolder_mask name '.bmp'],'BMP')
+            end
 
         end
         backim = imset.iter_back{theback};
