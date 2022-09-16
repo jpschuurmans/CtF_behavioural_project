@@ -21,7 +21,7 @@ mask_path = f'{base_path}masks/'
 back_path = f'{base_path}background/'
 data_path = f'{base_path}data/'
 asfx='.bmp'
-
+#save_path = f'{base_path}saved_images/' ####### for screenshotting a trial
 
 #%% ===========================================================================
 # imports
@@ -170,7 +170,7 @@ writer.writeheader()
                            
 #%% ===========================================================================
 # Prepare/open window
-win = visual.Window(monitor = mon, size = scrsize, color ='grey', units ='pix', fullscr = True)
+win = visual.Window(monitor = mon, size = scrsize, screen=1, color ='grey', units ='pix', fullscr = True)
 
 
 
@@ -258,6 +258,8 @@ for bl,block in enumerate(alltrials.blocks):
                 for nFrames in range(nframe[window]):
                     bitmap[window].draw()
                     win.flip()
+                #win.getMovieFrame() ####### for screenshotting a trial
+                #win.saveMovieFrames(f'{save_path}{window}.bmp')
 
             
             change_clock.reset()

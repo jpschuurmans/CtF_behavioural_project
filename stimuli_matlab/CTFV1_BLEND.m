@@ -86,7 +86,7 @@ for theback = 1:backgrounds % for all scrambled backgrounds
             blendim = blendim / std2(blendim); %normalize blend stim part 2
             blendim	= (blendim*LC(2)) + LC(1); %desired lum and contrast
             fprintf('mean: %f - std: %f - face %d for type: %s blendedddd\n',mean2(blendim),std2(blendim),theface,stimulus) % check contr and lum for the background
-            imshow(blendim)
+            imshow(blendim); pause (0.05)
             
             imset.blendim{theback,thestim,theface} = blendim;     	
 
