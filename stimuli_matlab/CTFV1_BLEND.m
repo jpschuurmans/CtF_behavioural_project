@@ -12,7 +12,7 @@ outfolder_mask = [basefolder 'finalstim/masks/'];
 load([basefolder 'CTFV1_STIM.mat'])
 addpath(basefolder)
 
-backgrounds = 8;
+backgrounds = 12;
 
 outputmat = 'CTFV1_BLEND.mat';
 

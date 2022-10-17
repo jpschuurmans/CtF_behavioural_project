@@ -1,0 +1,18 @@
+{
+"presc_inst1" : "Bonjour,\nAvant de commencer, installez-vous bien pour que la croix soit au milieu de votre champ de vision.\n\n\n\n\n\nVous pouvez régler la hauteur de la chaise et du repose menton.\n\nAppuyez sur ‘espace’ pour continuer",
+"presc_inst2" : "Avec cette expérience, nous essayons de mieux comprendre les informations utilisées pour traiter les visages.\nVous verrez des images de célébrités masculines connues incrustées en arrière-plan, rapidement suivies d'une image brouillée.\n\n\n\nAppuyez sur la touche « espace » pour continuer.",
+"presc_inst3" : "Tout d'abord, nous allons commencer par sélectionner les célébrités que vous connaissez bien.\n\nVous allez voir quelques photos de célébrités. Si vous les reconnaissez, cliquez avec le curseur sur le nom de l'acteur. Si vous ne le reconnaissez pas sur la photo, cliquez sur 'Je ne sais pas'.\n\nNe répondez que si vous êtes sûr de reconnaître la célébrité, car le reste de l'expérience repose sur vos réponses.",
+"presc_inst4" : "Attention les images ne restent que très peu de temps à l’écran. Soyez attentif.ive!\n\nLorsque vous êtes prêt.e appuyez sur ‘espace’",
+"pract_inst1" : "La diapositive suivante vous montrera les célébrités que vous verrez pendant l'expérience.\n\nPour toutes les célébrités sélectionnées, les images que nous utiliserons pendant l'expérience apparaîtront à l'écran avec leur nom pendant 5 secondes.\n\nIl y aura 10 célébrités au total, appuyez sur la touche 'espace' pour continuer.",
+"pract_inst2" : "Maintenant que nous avons sélectionné des célébrités que vous reconnaissez, nous allons passer à la phase suivante.",
+"pract_inst3" : "Notre but est d’observer la résistance de la reconnaissance de l’identité à certaines dégradations de l’image.\n\nIl est donc normal que cette tâche soit difficile.\nEssayez cependant de répondre le plus justement et le plus rapidement possible.\n\nAvant de commencer, vous allez donc faire un entraînement.",
+"pract_inst4" : "Au cours de la tâche, vous allez voir deux visage apparaître l’un après l’autre. Vous devez déterminer si les deux images correspondent au même célébrité ou non.\n\nSi vous reconnaissez le même acteur appuyez sur la touche « s »,\nsi vous reconnaissez deux acteurs différents appuyez sur la touche « l ».\n\nEssayez de répondre le plus rapidement et le plus justement possible.",
+"pract_inst5" : "Placez vos index sur les touches « s » et « l ».\n\nCliquez sur :\n\n« s » pour même identité\n\n« l » pour identité différente",
+"main_inst1" : "Maintenant que vous êtes familiarisé avec cette tâche, compliquons-la un peu plus.\n\nLes visages que vous êtes sur le point de voir seront maintenant intégrés à l'arrière-plan avec différents degrés de visibilité.",
+"main_inst2" : "Félicitations, vous avez réussi l’entraînement.\nVous aller maintenant passer à l’expérience.\n\nLa tâche est la même que pendant l’entrainement.\n\nEssayez de répondre le plus rapidement et le plus justement possible.",
+"main_inst3" : "L'expérience est divisée en blocs d'environ 5 minutes chacun, ils sont séparés par des pauses de 20 secondes (vous pouvez toujours prendre plus de temps). \n\nVous devrez appuyer sur « espace » pour continuer. \n\nN'hésitez pas à prendre le temps dont vous avez besoin, à reposer vos yeux...",
+"main_inst4" : "Pour rappel, appuyez sur\n\nla touche « s » pour même identité\n\nla touche « l » pour célébrité différent\n\nPour commencez, appuyez sur la touche « espace ».",
+"oops" : "Pas assez de célébrités reconnues...\n\nVeuillez contacter l'expérimentateur.",
+"incorrect" : "Erreur",
+"correct" : "Bien !"
+}

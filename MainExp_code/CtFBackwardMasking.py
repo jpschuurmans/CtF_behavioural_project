@@ -33,15 +33,17 @@ import itertools
 from psychopy import visual, event, core, gui, data, monitors
 from PIL import Image
 import csv
+
 from functions_ctfbackwardmasking import *
 from JS_psychopyfunctions import *
+
 
 
 #%% ===========================================================================
 # different conditions in experiment
 
 spatialfrequencies = ['LSF','HSF']
-durations = ['50','100','125', '150'] #### change however. 
+durations = ['25','50','75','100','125','150'] #### change however. 
 #different_conditions = list(itertools.product(spatialfrequencies,durations))
 
 # for the paradigm we need more trial contitions
@@ -49,7 +51,7 @@ matching = ['same','diff']
 staircases = ['1','2']
 
 #desired luminance and contrast of images
-LC = [.225, .9] # [0.45, 0.1] if between 0 and 1
+LC = [0.45, 0.1] # [0.45, 0.1] if between 0 and 1
 #occluded_image = (occluded_image*LC[1]) + LC[0]   # desired luminance and contrast
 
 
@@ -66,7 +68,8 @@ exp_info = {
         '5. screenwidth(pix)' : '1920',
         '6. screenhight(pix)' : '1200', # '1080',
         '7. refreshrate(hz)' : '60', #ViewPixx - Change this (120)
-        '8. screendistance' : '57'
+        '8. screendistance' : '57',
+        'Prefered language' : ('fr','en') 
         }
 dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name)
     
@@ -88,33 +91,194 @@ scrsize = (float(exp_info['5. screenwidth(pix)']),float(exp_info['6. screenhight
 framelength = 1000/(float(framerate))
 mon.setSizePix(scrsize)
 
+language = exp_info['Prefered language'] 
+
+# prepare log file to write the data
+if not os.path.isdir(data_path):
+    os.makedirs(data_path)
+logname = exp_info['1. subject'] + '_' + exp_info['2. gender'] +  exp_info['3. age'] + '_' + exp_info['date']
 
 #%% ===========================================================================
 # Timing
 
 fix_dur = 500 # fixation before trial input in ms
 int_dur = 500 # time between fixation and trial  
-mask_dur = 200 # duration mask
+mask_dur = 166 # duration mask
+isi_dur = 300 # duration between mask and stim2
 
-nframe = num_frames(fix_dur,int_dur,mask_dur,framelength)
+nframe = num_frames(fix_dur,int_dur,mask_dur,isi_dur,framelength)
+
+#%% ===========================================================================
+# Prepare/open window
+win = visual.Window(monitor = mon, size = scrsize, screen=0, color ='grey', units ='pix', fullscr = True)
+
+# prepare bitmaps for presenting images
+stimsize = [550,550]
+
+bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'mask' : [], 'isi' : [], 'stim2' : []}
+
+for bit in bitmap:
+    bitmap[bit] = visual.ImageStim(win, size=stimsize, mask='circle', interpolate=True)
+    bitmap[bit].setOri(180) # need to do this because somehow the images are inverted.....
+
+prescreen = {}
+for screennr in range(4):
+    prescreen[screennr] = visual.ImageStim(win)
+
+
+# draw fixation cross
+fix_cross = visual.ShapeStim(win, 
+    vertices=((0, -0.3), (0, 0.3), (0,0), (-0.3,0), (0.3, 0)),
+    lineWidth=30,
+    closeShape=False,
+    lineColor="black"
+    )
+
+timer = core.Clock()
+
+#%% ===========================================================================
+# open log file for prescreening
+
+data_fname = f'{data_path}{logname}_precreening.txt'
+f = open(data_fname,'w',encoding='UTF8', newline='')
+
+header_names = 'subject,trial,celeb_id,celeb_name,celeb_image,celeb_position,rand0_name,rand0_pos,rand1_name,rand1_pos,rand2_name,rand2_pos,rand3_name,rand3_pos,answer_celeb,answer_position,correct,rt\n'
+f.write(header_names)
+
+
+
+#%% ===========================================================================
+# instruction screen + prescreening celebs
+instructiontexts = load_txt_as_dict(f'{base_path}instructions_{language}.txt')
+
+textpage = visual.TextStim(win, height=36, font="Palatino Linotype", alignHoriz='center', wrapWidth=scrsize[0])
+
+for page in range(1,5): 
+    if page == 1:
+        fix_cross.draw()
+    instructions = textpage
+    instructions.text = instructiontexts[f'presc_inst{page}']
+    instructions.draw()
+    win.flip()
+    keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
+    escape_check(keys,win,f)
+win.flip(clearBuffer=True)
+core.wait(1)
+mouse= event.Mouse(visible = True, win = win)
+
+
+#%% ===========================================================================
+# prescreen subjects if they recognise the celebs
+# prepare triallist for prescreening
+prestim = Stimuli(f'{stim_path}prescreening/') # prestim.list = all stim (list with all all stim)
+prescreen_trials = presceen_trials(base_path,prestim,exp_info) #prepare trial list
+
+# prepare screens for prescreening
+answertext = {}
+answerbox = {}
+for answer in range(6):
+    answertext[f'rand{answer}'] = visual.TextStim(win, height=32, font="Palatino Linotype", color = "black")
+    answerbox[f'rand{answer}'] = visual.Rect(win, width = 350, height = 100, lineColor = "black", lineWidth = 3)
+
+# showing all 4 images of each celeb
+# if 4 images are recognized then put the celebs in a list and take 10 randomly.
+foundIm = []
+#Pretest
+for prescstim in prescreen_trials:
+    loginfo = f"{exp_info['1. subject']}, {prescstim}"
+    for text in prescreen_trials[prescstim]:
+        loginfo = f"{loginfo}, {prescreen_trials[prescstim][text]}"
+    prescreen[0].setImage(f'{stim_path}prescreening/' + prescreen_trials[prescstim]['im_path'])
+    prescreen[0].pos=(0, 0)
+    prescreen[0].draw()
+    win.flip() #fliping the screen to show images
+    core.wait(0.5) #present images for 500ms
+    win.flip()
+    event.clearEvents()
+    mouse.clickReset()
+    
+    for ans_num,answers in enumerate(answertext):
+        if answers == 'rand4':
+            answertext[answers].text = prescreen_trials[prescstim]['im_name']
+            answertext[answers].pos = prescreen_trials[prescstim]['im_pos']
+        elif answers == 'rand5':
+            if language == 'en':
+                answertext[answers].text = "I don't know"
+            else:
+                answertext[answers].text = "Je ne sais pas"
+            answerbox[answers].fillColor = "white"
+            answerbox[answers].opacity = .2
+        else:
+            answertext[answers].text = prescreen_trials[prescstim][f'rand{ans_num}_name']
+            answertext[answers].pos = prescreen_trials[prescstim][f'rand{ans_num}_pos']
+        answertext[answers].draw()
+        answerbox[answers].pos = tuple(answertext[answers].pos)
+        answerbox[answers].draw()
+    win.flip()
+    escape_check(keys,win,f)
+    
+    #measure responses
+    timer.reset()
+    Ans = False
+    
+    while Ans == False:
+        if mouse.getPressed() [0]==1:
+            mousepos = mouse.getPos()
+            Ans = True
+            time = timer.getTime()  
+            
+            #print(mousepos)
+            #check if subject gave correct answer
+            for answers in answerbox:
+                if answerbox[answers].contains(mousepos):
+                    if answers == 'rand4':
+                        answer_celeb = prescreen_trials[prescstim]['im_name']
+                        correct = 1
+                        foundIm.append(answer_celeb)
+                    elif answers == 'rand5':
+                        answer_celeb = 'idk'
+                        correct = 0
+                    else:
+                        answer_celeb = prescreen_trials[prescstim][f'{answers}_name']
+                        correct = 0
+    toSave = f"{loginfo}, {answer_celeb}, {mousepos}, {str(correct)}, {str(time)}\n"
+    f.write(toSave)
+    win.flip()
+    #win.flip(clearBuffer=True)
+    win.flip()
+    core.wait(0.5)
+    event.clearEvents()
+    mouse.clickReset() 
+
+#select the final celebirties to be used in the experiment
+final_celeb_list = select_recognised_celebs(base_path,foundIm)
+
+if len(final_celeb_list) < 10:   
+    textpage.text  = instructiontexts["oops"]
+    textpage.draw()
+    win.flip()
+    
+    keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
+    escape_check(keys,win,f)
 
 
 #%% ===========================================================================
 ## load and organise images into a block and trial lists
 
 # get names of all images folders. Naming should be:
-# stimulus: ID01_IM01.bmp / mask: BG01_ID01_IM01_LSF.bmp / background: BG01.bmp
+# stimulus: BG01_ID01_IM01.bmp / mask: BG01_ID01_IM01_LSF.bmp / background: BG01.bmp
 # returns self.path and self.stim (list of names)
-stim = Stimuli(stim_path)
+stim = Stimuli(f'{stim_path}main/')
 
 # returns list with unique dr of IDs or IMs self.unique_nr
-stim.getuniquenr('ID')
+
 stim.getuniquenr('IM')
 stim.getuniquenr('BG')
 
-# returns self.same_list / self.diff_list / self.maxnr_trials 
-stim.list_of_combinations(stim.unique_nr['BG'])
 
+# returns self.same_list / self.diff_list / self.maxnr_trials 
+stim.list_of_combinations(stim.unique_nr['BG'], final_celeb_list)
+stim.getuniquenr('ID')
 
 
 # creates self.sf, self.dur, self.match, self.stair and an empty self.trial_list
@@ -123,7 +287,6 @@ alltrials = Ordertrials(stim,spatialfrequencies,durations,matching,staircases)
 # Creating and shuffle the trials with balanced number of conditions
 alltrials.trial_list(framelength)
 alltrials.shuffle_trials()
-
 
 
 # Making sure all big blocks have equal number of each condition
@@ -135,8 +298,7 @@ trials_per_block = 16 # that is 8 per staircase
 
 # creates self.blocks['block-1']['HSF_50']['stair-1'][0] 
 # in this case: 8 blocks, 6 conditions, 2 staircases, 16 trials
-alltrials.make_miniblocks(n_bigblock,miniblock_per_bigblock,trials_per_block,stim.unique_nr['BG'])
-    
+alltrials.make_miniblocks(n_bigblock,miniblock_per_bigblock,trials_per_block,stim.unique_nr['BG']) 
 
 
 #%% ===========================================================================
@@ -153,13 +315,9 @@ alltrials.prepare_staircare(nTrials,signal_start,signal_end,steps)
 
 
 #%% ===========================================================================
-# open file csv log file to write the data
+# Open and prepare header information for log file
 
-if not os.path.isdir(data_path):
-    os.makedirs(data_path)
-
-data_fname = exp_info['1. subject'] + '_' + exp_info['2. gender'] +  exp_info['3. age'] + '_' + exp_info['date'] + '.csv'
-data_fname = os.path.join(data_path, data_fname)
+data_fname = f'{data_path}{logname}.csv'
 f = open(data_fname,'w',encoding='UTF8', newline='')
 
 header_names = list(alltrials.blocks['block-1']['HSF_100']['trials'][0].keys())
@@ -167,66 +325,135 @@ header_names = list(alltrials.blocks['block-1']['HSF_100']['trials'][0].keys())
 writer=csv.DictWriter(f, fieldnames=header_names)
 writer.writeheader()
 
-                           
-#%% ===========================================================================
-# Prepare/open window
-win = visual.Window(monitor = mon, size = scrsize, screen=1, color ='grey', units ='pix', fullscr = True)
-
-
-
-# prepare bitmaps for presenting images
-stimsize = [550,550]
-
-bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'mask' : [], 'stim2' : []}
-
-for bit in bitmap:
-    bitmap[bit] = visual.ImageStim(win, size=stimsize, interpolate=True)
-    bitmap[bit].setOri(180) # need to do this because somehow the images are inverted.....
-
-# draw fixation cross
-fix_cross = visual.ShapeStim(win, 
-    vertices=((0, -0.3), (0, 0.3), (0,0), (-0.3,0), (0.3, 0)),
-    lineWidth=30,
-    closeShape=False,
-    lineColor="black"
-    )
 
 #%% ===========================================================================
-# instruction screen
+# instruction screen + preparation screen
 
-textpage = visual.TextStim(win, height=32, font="Palatino Linotype", alignHoriz='center', wrapWidth=scrsize[0])
-
-instructiontexts = {
-    1 : """In this experiment, you will see two faces displayed
-    one after another.\n\n Your task is to report whether the two 
-    faces have the same identity.""",
-    2 : """If both pictures are of the SAME person press "S".\n
-    If they are different people, press "L".\n\n 
-    Press SPACE key to continue.""",
-    3 : """ READY """
-    }
-
-for text in instructiontexts:
-    instructions = textpage
-    instructions.text = instructiontexts[text]
-    instructions.draw()
+for page in range(1,6): 
+    instruction_pract = textpage
+    instruction_pract.text = instructiontexts[f'pract_inst{page}']
+    instruction_pract.draw()
     win.flip()
-
     keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
     escape_check(keys,win,f)
+    win.flip(clearBuffer=True)
+    core.wait(1)
+    if page == 1:
+        List_pos = [(-250,-250), (250,-250), (-250, 250), (250, 250)]
+        for celebid in final_celeb_list:
+            stimuli = [ x for x in prestim.list if 'ID'+celebid in x ]
+            for im_idx,image in enumerate(stimuli): 
+                prescreen[im_idx].setImage(f'{stim_path}prescreening/{image}')
+                prescreen[im_idx].pos=List_pos[im_idx]
+                prescreen[im_idx].draw()
+            namepage = textpage
+            namepage.text = final_celeb_list[celebid]
+            namepage.pos = (0, 0)
+            namepage.draw()
+            win.flip()
+            core.wait(5)
+            keys = event.getKeys(keyList=['space','escape'])
+            escape_check(keys,win,f)
+        win.flip(clearBuffer=True)
+        core.wait(1)
+        escape_check(keys,win,f)
+    win.flip(clearBuffer=True)
+    core.wait(1)
+mouse= event.Mouse(visible = True, win = win)
 
-# Hide cursor when window is open
-win.mouseVisible=False
-# win.mouseVisible=True
+#%% ===========================================================================
+# practice trialsss
+npractice = 10 #5 same and 5 diff
+practice_dur = 200 #500ms for target
+practice_signal = 100
+practice_maskdur = 200
 
-# for debugging: win.close()
+nframe_pract = num_frames(fix_dur,int_dur,practice_maskdur,isi_dur,framelength)
+
+practice_trial_list = prepare_practice_trials(alltrials,stim,npractice,practice_dur,practice_signal,framelength)
+
+for pract_trial in practice_trial_list:
+    pract_trialinfo = practice_trial_list[pract_trial]
+    bitmap['fix'].draw()
+    fix_cross.setAutoDraw(True)
+    
+    nframe_pract['stim1'] = pract_trialinfo['nframes']
+    #load stim1, stim2 and mask
+    drawed = loadimage(base_path, pract_trialinfo, pract_trialinfo['contrast'], LC)
+
+    #set stim1, stim2 and mask
+    for drawit in bitmap:
+        bitmap[drawit].setMask('circle')
+        bitmap[drawit].setImage(drawed[drawit])
+
+    #### trial windows 
+    for window in bitmap:
+        if window == 'int':
+            fix_cross.setAutoDraw(False)
+        for nFrames in range(nframe_pract[window]):
+            bitmap[window].draw()
+            win.flip()
+
+    timer.reset()
+                                            
+    # Wait until a response, or until time limit.
+    keys = event.waitKeys(keyList=['s','l','escape','p'])    
+
+    if keys:
+        pract_trialinfo['rt'] = timer.getTime()
+    for drawit in bitmap:
+        bitmap[drawit].clearTextures()
+    pract_trialinfo['acc'] = 0
+    fb_text = instructiontexts["incorrect" ]
+    if keys:
+        escape_check(keys,win,f)
+        if 's' in keys and (pract_trialinfo['matching'] == 'same'): # is same
+            pract_trialinfo['acc'] = 1
+            fb_text = instructiontexts["correct" ]
+        elif 'l' in keys and (pract_trialinfo['matching'] == 'diff'): # is different
+            pract_trialinfo['acc'] = 1      
+            fb_text = instructiontexts["correct" ]
+    fix_cross.setAutoDraw(False)
+    fbpage = textpage
+    fbpage.text = fb_text
+    fbpage.draw()
+    win.flip()        
+    core.wait(1)
+    escape_check(keys,win,f)
+    win.flip(clearBuffer=True)
+
+    writer.writerow(pract_trialinfo)
+
+#%% ===========================================================================
+# instructions main experiment trialsss
+for page in range(1,4): 
+    instruction_pract = textpage
+    instruction_pract.text = instructiontexts[f'main_inst{page}']
+    instruction_pract.draw()
+    if page == 1:
+        visibility = [30,50,70]
+        pos_list = [(-400,-350), (0,-350), (400, -350)]
+        examplestim = stim_path + 'main/' + alltrials.blocks['block-6']['HSF_100']['trials'][0]['stim1']
+        loaded_image = np.array(Image.open(examplestim))
+        exampleback = back_path + alltrials.blocks['block-6']['HSF_100']['trials'][0]['background']
+        loaded_back = np.array(Image.open(exampleback))
+        for idx,signal in enumerate(visibility):
+            image2draw = occlude(loaded_image, loaded_back, signal)
+            image2draw = equalise_im(image2draw,LC)
+            prescreen[idx].setOri(180) # need to do this because somehow the images are inverted.....
+            prescreen[idx].setMask('circle')
+            prescreen[idx].setImage(image2draw)
+            prescreen[idx].pos = pos_list[idx]
+            prescreen[idx].draw()
+    win.flip()
+    keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
+    escape_check(keys,win,f)
+    win.flip(clearBuffer=True)
+    core.wait(1)
 
 
 #%% ===========================================================================
-change_clock = core.Clock()
-rt_clock = core.Clock()
-
-#from functions_ctfbackwardmasking import *
+# Main experiment code 
 
 # Start experiment
 for bl,block in enumerate(alltrials.blocks):
@@ -248,7 +475,8 @@ for bl,block in enumerate(alltrials.blocks):
             drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC)
 
             #set stim1, stim2 and mask
-            for drawit in bitmap:                    
+            for drawit in bitmap:
+                bitmap[drawit].setMask('circle')
                 bitmap[drawit].setImage(drawed[drawit])
 
             #### trial windows 
@@ -260,10 +488,8 @@ for bl,block in enumerate(alltrials.blocks):
                     win.flip()
                 #win.getMovieFrame() ####### for screenshotting a trial
                 #win.saveMovieFrames(f'{save_path}{window}.bmp')
-
             
-            change_clock.reset()
-            rt_clock.reset()
+            timer.reset()
                                             
             # Wait until a response, or until time limit.
             # keys = event.waitKeys(maxWait=timelimit, keyList=['s','l', 'escape'])
@@ -272,7 +498,7 @@ for bl,block in enumerate(alltrials.blocks):
             fix_cross.setAutoDraw(True)
             win.flip()
             if keys:
-                trialinfo['rt'] = rt_clock.getTime()
+                trialinfo['rt'] = timer.getTime()
                 # fixation.clearTextures()
             
             for drawit in bitmap:

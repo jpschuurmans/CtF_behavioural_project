@@ -12,6 +12,7 @@ import numpy as np
 import PsiMarginal 
 from psychopy import visual, event, core, gui, data, monitors
 from JS_psychopyfunctions import *
+import json
 
 #%% =============================================================================
 def escape_check(keys,win,f):
@@ -20,6 +21,11 @@ def escape_check(keys,win,f):
         win.close()
         f.close()
         
+def load_txt_as_dict(path):
+    with open(path, 'r', encoding='utf-8') as f:
+        instructions = f.read()
+    instructiontexts = json.loads(instructions)
+    return instructiontexts
 
 def nframes(time_in_ms, framelength):
     # calculates the number of frames based on time in ms and framerate
@@ -39,7 +45,13 @@ def makePsi(nTrials,signal_start,signal_end,steps): # start_thresh is signal str
 
 def equalise_im(loaded_image, LC):
     #normalises a images loaded as a NP array [min -1, max +1]
-    loaded_image = 2.*(loaded_image - np.min(loaded_image)) / np.ptp(loaded_image)-1 # equalise image
+    
+    normalised = (loaded_image - np.min(loaded_image)) / np.ptp(loaded_image) # equalise image
+    equalised = (normalised*LC[1]) + LC[0]
+    
+    loaded_image = (equalised - np.min(equalised)) / np.ptp(equalised)-.5 # equalise image
+    
+    #loaded_image = 2.*(loaded_image - np.min(loaded_image)) / np.ptp(loaded_image)-1 # equalise image
     #want to add the part to give the image desired luminance and contrast.... 
     # dont know how yet..
     #loaded_image = (loaded_image*LC[1]) + LC[0]   # desired luminance and contrast

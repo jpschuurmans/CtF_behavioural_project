@@ -23,13 +23,14 @@ from JS_psychopyfunctions import *
 #%% =============================================================================
 # functions
 
-def num_frames(fix_dur, int_dur, mask_dur,framelength):
+def num_frames(fix_dur, int_dur, mask_dur, isi_dur, framelength):
     nframe = {}
       
     nframe['fix'] = nframes(fix_dur,framelength)
     nframe['int'] = nframes(int_dur,framelength)
     nframe['stim1'] = 1
     nframe['mask'] = nframes(mask_dur,framelength)
+    nframe['isi'] = nframes(isi_dur,framelength)
     nframe['stim2'] = 1
     return nframe
 
@@ -40,6 +41,7 @@ def loadimage(base_path,trialinfo,visibility,LC):
                'int' : 'background',               
                'stim1' : 'stimuli',
                'mask' : 'masks',
+               'isi' : 'background',
                'stim2' : 'stimuli'}
     draw = {}
     loaded = {}
@@ -49,20 +51,30 @@ def loadimage(base_path,trialinfo,visibility,LC):
     # visualise: Image.fromarray(alphamask.astype('uint8'))
     for curr in stimuli:
         stim_path = f'{base_path}{stimuli[curr]}/'
-        if curr == 'fix' or curr == 'int':
+        if curr == 'fix' or curr == 'int' or curr == 'isi':
             image2load = trialinfo['background']
-        else:
+        elif curr == 'mask':
             image2load = trialinfo[curr]
+        else:
+            image2load = 'main/' + trialinfo[curr]
         loaded_image = np.array(Image.open(os.path.join(stim_path,image2load)))
         loaded[curr] = loaded_image
         draw[curr] = equalise_im(loaded_image,LC)
         # visualise: Image.fromarray(loaded_image.astype('uint8'))
-    for im in range(1,3):
-        occluded_image = occlude(loaded[f'stim{im}'],loaded['int'],visibility)
+    #for im in range(1,3): # both stim1 and stim2 occluded or only stim1 ???
+    #    occluded_image = occlude(loaded[f'stim{im}'],loaded['int'],visibility)
+    #    occluded_image = equalise_im(occluded_image,LC)
+    #    draw[f'stim{im}'] = replace_background(occluded_image,draw['int'],alphamask)
+    #    #visualise: Image.fromarray(occluded_image.astype('uint8'))
+    if trialinfo['block'] == 'practice':
+        occluded_image = draw[f'stim1']
+    else:
+        occluded_image = occlude(loaded[f'stim1'],loaded['int'],visibility)
         occluded_image = equalise_im(occluded_image,LC)
-        draw[f'stim{im}'] = replace_background(occluded_image,draw['int'],alphamask)
-        # visualise: Image.fromarray(occluded_image.astype('uint8'))
-    draw[f'mask'] = replace_background(draw[f'mask'],draw['int'],alphamask)    
+    draw[f'stim1'] = replace_background(occluded_image,draw['int'],alphamask)    
+    for stim in draw:
+        draw[stim] = equalise_im(draw[stim],LC)
+        draw[stim] = replace_background(draw[stim],draw['int'],alphamask)    
     return draw
 
 
@@ -113,6 +125,129 @@ def block_break(win, f, block_no,maxblock):
 
 
 
+def presceen_trials(base_path,prestim,exp_info):
+    # prescreening to select celeberties welknown to the subject
+    # Subject must judge if they recognise all 4 images of each celeberty 
+    # if 4 images are recognized then put the celeberties in a list and take 10 randomly   
+    
+    # returns list with unique dr of IDs or IMs self.unique_nr
+    prestim.getuniquenr('ID') # prestim.unique_nr
+    prestim.getuniquenr('IM')
+    
+    
+    # make list of celeberty id's
+    celeb_IDlist = []
+    for celeb_id in prestim.unique_nr['ID']:
+        for celeb_im in prestim.unique_nr['IM']:
+            celeb_IDlist.append(celeb_id)
+            
+            
+
+    # make trial order
+    celeb_list = load_txt_as_dict(f'{base_path}celeb_names.txt')
+    #List_pos = [(0, -7),(-12, -4), (12, -4), (-8, 5), (8, 5)]
+    List_pos = [(0, -400),(-550, -100), (550, -100), (-300, 300), (300, 300)]
+    trial_list = list(range(1,int((len(prestim.unique_nr['ID'])*len(prestim.unique_nr['IM']))+1)))
+    prescreen_trials = {}
+        
+    for image in prestim.list:
+        celeb_id = image.rsplit('ID')[1][0:2]
+        random.shuffle(trial_list)
+        trialnum = trial_list.pop()
+        Rand_pos = random.sample(List_pos, len(List_pos))
+        celeb_info = {}
+        celeb_info['celeb_id'] = celeb_id
+        celeb_info['im_name'] = celeb_list[str(celeb_id)]
+        celeb_info['im_path'] = image
+        celeb_info['im_pos'] = Rand_pos[4]
+        
+        #templist
+        tempID = copy.deepcopy(celeb_IDlist)
+        # remove ID 1 from list
+        for rep in range(len(prestim.unique_nr['IM'])):
+            tempID.remove(int(celeb_id))
+        rand_celebs = random.sample(list(np.unique(tempID)) , 4)
+        for randnr,rand in enumerate(rand_celebs):
+            tempID.remove(rand)           
+            celeb_info[f'rand{randnr}_name'] = celeb_list["%02d" % (rand_celebs[randnr])]
+            celeb_info[f'rand{randnr}_pos'] = Rand_pos[randnr]
+        prescreen_trials[f'trial{trialnum}'] = celeb_info
+    
+    l = list(prescreen_trials.items())
+    random.shuffle(l)
+    prescreen_trials = dict(l)
+    
+    return prescreen_trials
+
+
+def select_recognised_celebs(base_path,foundIm):
+    celeb_list = load_txt_as_dict(f'{base_path}celeb_names.txt')
+    
+    FinalList = []
+    FinalList3 = []
+    
+    #select all celebs that are recognised in all 4 photos
+    for num in celeb_list:
+        celeb = [im for im in foundIm if celeb_list[num] in im]
+        if len(celeb) == 4:
+            FinalList.append(celeb_list[num])
+    # of not all photos are recognised, select them where 3 photos were.
+    if len(FinalList) < 10:
+        miss = 10 - len(FinalList)
+        for num in celeb_list:
+            actor = [im for im in foundIm if celeb_list[num] in im]
+            if len(actor) == 3:
+                FinalList3.append(celeb_list[num])
+        final_actor_list = random.sample(FinalList, len(FinalList))
+        for i in range(miss):
+            l = random.sample(FinalList3, miss)
+            final_actor_list.append(l[i])            
+    else:    
+        final_actor_list = random.sample(FinalList, 10)    
+    #convert list to dict with keys
+    actor_dict = {}
+    for actor in final_actor_list:
+        actor_dict[[i for i in celeb_list if celeb_list[i]==actor][0]] = actor
+    
+    return actor_dict
+
+
+
+def prepare_practice_trials(alltrials,stim,npractice,practice_dur,signal,framelength):
+    log_key_list = alltrials.blocks['block-6']['HSF_100']['trials'][0].keys()
+    
+    practice_trial_list = {}
+    for pract_trial in range(npractice):
+        if pract_trial % 2 == 0:
+            trialtype = 'same'
+            pick_list = stim.same_list
+            SF = 'HSF'
+        else:
+            trialtype = 'diff'
+            pick_list = stim.diff_list
+            SF = 'LSF'
+        rndBack = f'BG0{random.randint(1,len(stim.unique_nr["BG"]))}'
+        rndBlock = random.randint(0,int(len(pick_list[rndBack])-1))
+        rndTrial = random.randint(0,int(len(pick_list[rndBack][rndBlock])-1))
+        pick_list = pick_list[rndBack][rndBlock][rndTrial]
+        trial = {
+            'block' : 'practice',
+            'trialno' : pract_trial,
+            'stim1' : pick_list[0],
+            'stim2' : pick_list[1],
+            'matching' : trialtype,
+            'mask' : f'{pick_list[0][:-4]}_{SF}.bmp',
+            'duration' : practice_dur,
+            'nframes' : nframes(practice_dur,framelength),
+            'SF' : SF,
+            'background' : f'{rndBack}.bmp',
+            'staircasenr': '',
+            'rt' : 0,
+            'acc' : 0,
+            'contrast' : signal}
+        practice_trial_list[pract_trial]  = trial
+    return practice_trial_list
+
 #%% =============================================================================
 # classes
 
@@ -136,16 +271,22 @@ class Stimuli:
         # returns list with unique dr of IDs or IMs self.unique_nr
         self.unique_nr[whichtype] = unique_nr
         
-    def list_of_combinations(self,nrback):
+    def list_of_combinations(self,nrback,actor_dict):
         # returns self.same_list / self.diff_list / self.maxnr_trials 
         same_list = {}
         diff_list = {}
+        self.stim_list = []
+        # select the celebs for current subject
+        actor_id_list = ['ID'+s for s in list(actor_dict.keys())]
+        for celebid in actor_id_list:
+            self.stim_list.extend([ x for x in self.list if celebid in x ])
+        self.list = self.stim_list
         for background in nrback:
             same_list_back = []
             diff_list_back = []
-            for idx,uniqueid in enumerate(self.unique_nr['ID']):
+            for idx,uniqueid in enumerate(actor_dict.keys()):
                 nr_unique_images = len(self.unique_nr['IM'])
-                stimuluslist = [s for s in self.list if f'BG0{background}' in s]
+                stimuluslist = [s for s in self.stim_list if f'BG0{background}' in s]
                 list_curr_id = stimuluslist[(idx*nr_unique_images):nr_unique_images+(idx*nr_unique_images)]
                 comb_same_list = list(itertools.combinations(list_curr_id, r=2))
                 same_list_back.append(comb_same_list)
@@ -164,7 +305,6 @@ class Stimuli:
         # same_list[0][0] = first possible "same" combination
 
 
-
 # =============================================================================
 
 
@@ -177,22 +317,18 @@ class Ordertrials(object):
         self.match = matching
         self.stair = staircases
         self.stim = stim
-
     # Creating the trials with balanced number of conditions
     def trial_list(self,framelength):
         backgrounds = [f'BG0{str(x)}' for x in list(self.stim.unique_nr['BG'])]
         different_trials = ["_".join(items) for items in itertools.product(self.sf ,self.dur,self.match,self.stair,backgrounds)]
-
         self.conditionlist = ["_".join(items) for items in itertools.product(self.sf ,self.dur)]
-        
         # make this a dictionary
         self.trial_list = {}
         for key in different_trials:
             self.trial_list[key] = []
-            
         matchingcond = {'same' : self.stim.same_list,
-                        'diff' : self.stim.diff_list}
-        
+                        'diff' : self.stim.diff_list}     
+       
         for SF in self.sf:
             for dur in self.dur:
                 ImFrame = int(int(dur)/framelength)
@@ -203,8 +339,6 @@ class Ordertrials(object):
                             for cmb,combi_per_id in enumerate(triallist[backgroundnr][idx]): #all possible combinations per ID
                                 for stair in self.stair: #two staircases per condition
                                     trial_name = f'{SF}_{dur}_{trialtype}_{stair}_{backgroundnr}' # trial type name
-                                    #the two backgrounds will alternate depening on the staircase nr
-                                    #back = f'BG0{str(stair)}.bmp' ################################### if using this, also change self.trial_list
                                     num1 = round(random.random())
                                     if num1 == 0: # randomise which image is presented as image1
                                         num2 = 1 # making sure image 2 is the other image... :)
@@ -220,7 +354,6 @@ class Ordertrials(object):
                                         'stim1' : combi_per_id[num1],
                                         'stim2' : combi_per_id[num2],
                                         'matching' : trialtype,
-                                        #'mask' : f'{back[:-4]}_{combi_per_id[num1][:-4]}_{SF}.bmp',
                                         'mask' : f'{combi_per_id[num1][:-4]}_{SF}.bmp',
                                         'duration' : dur,
                                         'nframes' : ImFrame,
@@ -255,7 +388,6 @@ class Ordertrials(object):
             name = f'block-{bblock+1}'
             backrgoundnr = f'BG0{bblock+1}'
             for idx,cond in enumerate(self.conditionlist):
-                back_num = background_numbers[idx]
                 for stairnr in self.stair:
                     # for every mini block, grab 8 unique trials.. and go on to the next trial
                     for trial in range(int((trials_per_block/len(self.stair))/2)): # 8 (4same/4diff) trials of one condition per block
@@ -274,7 +406,13 @@ class Ordertrials(object):
             for key in keys:
                 shuffled_miniblocks.update({key: mini_blocks[key]})
             blocklist[name] = shuffled_miniblocks
-        self.blocks = blocklist
+        #shuffeling the big block order
+        bkeys = list(blocklist.keys())
+        random.shuffle(bkeys)
+        shuffled_bigblocks = dict()
+        for key in bkeys:
+            shuffled_bigblocks.update({key: blocklist[key]})
+        self.blocks = shuffled_bigblocks
 
     def prepare_staircare(self,nTrials,signal_start,signal_end,steps):
         for block in self.blocks:
