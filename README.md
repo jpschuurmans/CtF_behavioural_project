@@ -1,8 +1,9 @@
 # CtF_behavioural_project
 In this experiment we test behavioural implications of coarse-to-fine masking of faces.
+(it includes a prescreening to select celebrities the subject recognises and 10 practice trials)
 
 The paradigm is a delayed matching task:
-We present a full spectrum face (50/75/100/125/150ms), whereafter we mask (phase scrambled low or high SFs) and then present a second face (same or different identity).
+We present a full spectrum face (25/50/75/100/125/150ms), whereafter we mask (phase scrambled low or high SFs) and then present a second face (same or different identity).
 Subjects have to indicate whether the first face has the same identity as the second.
 
 ![blending](figures/fig2.png)
@@ -22,7 +23,7 @@ Experimentcodes in MainExp_code:
 - PsiMarignal.py is the staircasing function by N. Niehof
 
 Make sure the MainExp_code folder contains the following folders:
-- stimuli : containing stimuli with ID00_IM00.bmp naming
+- stimuli : containing stimuli with BG00_ID00_IM00.bmp naming
 - background : containing masks with BG00.bmp naming
 - masks : with LSF or HSF masks called BG00_ID00_IM00_LSF.bmp
 - data : for saving the logfiles
