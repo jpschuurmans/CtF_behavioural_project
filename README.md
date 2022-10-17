@@ -6,12 +6,12 @@ The paradigm is a delayed matching task:
 We present a full spectrum face (25/50/75/100/125/150ms), whereafter we mask (phase scrambled low or high SFs) and then present a second face (same or different identity).
 Subjects have to indicate whether the first face has the same identity as the second.
 
-![blending](figures/fig2.png)
+![trial_example](figures/fig2.png)
 
 We manipulate the visibility of the faces by blending the face with the background image.
 By using a staircase procedure, we can determine at which signal level the participant can preform the task above chance-level.
 
-![trial_example](figures/fig1.png)
+![blending](figures/fig1.png)
 If backward masking is very disrupting, the signal is expected to be high at the end of the experiment.
 If the masking is not as disruptive, the final signal will be lower.
 
