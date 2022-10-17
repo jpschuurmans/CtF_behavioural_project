@@ -151,7 +151,7 @@ f.write(header_names)
 # instruction screen + prescreening celebs
 instructiontexts = load_txt_as_dict(f'{base_path}instructions_{language}.txt')
 
-textpage = visual.TextStim(win, height=36, font="Palatino Linotype", alignHoriz='center', wrapWidth=scrsize[0])
+textpage = visual.TextStim(win, height=40, font="Palatino Linotype", alignHoriz='center', wrapWidth=scrsize[0])
 
 for page in range(1,5): 
     if page == 1:
@@ -426,7 +426,7 @@ for pract_trial in practice_trial_list:
 
 #%% ===========================================================================
 # instructions main experiment trialsss
-for page in range(1,4): 
+for page in range(1,5): 
     instruction_pract = textpage
     instruction_pract.text = instructiontexts[f'main_inst{page}']
     instruction_pract.draw()
