@@ -19,6 +19,7 @@ import random
 import numpy.random as rnd
 from psychopy import visual, event, core, gui, data, monitors
 from JS_psychopyfunctions import *
+import numpy.ma as ma
 
 #%% =============================================================================
 # functions
@@ -47,8 +48,11 @@ def loadimage(base_path,trialinfo,visibility,LC):
     loaded = {}
     all_loaded = {}
     alphamask = np.array(Image.open(f'{base_path}alphamask.bmp'))
-    #alphamask = equalise_im(alphamask,LC)
-    # visualise: Image.fromarray(alphamask.astype('uint8'))
+    alphamask = normalise_im(alphamask) # normalise alphamask
+    # visualise: plt.imshow(alphamask, interpolation='nearest')
+    # plt.gray()
+    # plt.show()
+    
     for curr in stimuli:
         stim_path = f'{base_path}{stimuli[curr]}/'
         if curr == 'fix' or curr == 'int' or curr == 'isi':
@@ -58,50 +62,51 @@ def loadimage(base_path,trialinfo,visibility,LC):
         else:
             image2load = 'main/' + trialinfo[curr]
         loaded_image = np.array(Image.open(os.path.join(stim_path,image2load)))
-        loaded[curr] = loaded_image
-        draw[curr] = equalise_im(loaded_image,LC)
-        # visualise: Image.fromarray(loaded_image.astype('uint8'))
-    #for im in range(1,3): # both stim1 and stim2 occluded or only stim1 ???
-    #    occluded_image = occlude(loaded[f'stim{im}'],loaded['int'],visibility)
-    #    occluded_image = equalise_im(occluded_image,LC)
-    #    draw[f'stim{im}'] = replace_background(occluded_image,draw['int'],alphamask)
-    #    #visualise: Image.fromarray(occluded_image.astype('uint8'))
-    if trialinfo['block'] == 'practice':
-        occluded_image = draw[f'stim1']
-    else:
-        occluded_image = occlude(loaded[f'stim1'],loaded['int'],visibility)
-        occluded_image = equalise_im(occluded_image,LC)
-    draw[f'stim1'] = replace_background(occluded_image,draw['int'],alphamask)    
+        loaded_image = equalise_im(loaded_image, LC)
+        #visualise: Image.fromarray(occluded_image.astype('uint8'))
+        draw[curr] = loaded_image
+    #if trialinfo['block'] != 'practice':
+    #    draw[f'stim1'] = occlude(draw[f'stim1'],draw['int'],visibility)
+    draw[f'stim1'] = occlude(draw[f'stim1'],draw['int'],visibility) ############### can this handle equalised images?
     for stim in draw:
         draw[stim] = equalise_im(draw[stim],LC)
+        #visualise: Image.fromarray(occluded_image.astype('uint8'))
         draw[stim] = replace_background(draw[stim],draw['int'],alphamask)    
     return draw
 
 
 def replace_background(equalised_image, background_image, alphamask):
-        new_im = np.empty(np.shape(equalised_image))
-        for iy, ix in np.ndindex(new_im.shape):
-            if alphamask[iy, ix] == 255:
-                new_im[iy, ix] = copy.deepcopy(background_image[iy, ix])
-            elif alphamask[iy, ix] != 255:
-                new_im[iy, ix] = copy.deepcopy(equalised_image[iy, ix])               
-        return new_im
+        # visualise: from matplotlib import pyplot as plt
+        # plt.imshow(alphamask, interpolation='nearest')
+        backmask = alphamask
+        facemask = 1-alphamask
+
+        face_masked = background_image*backmask
+        back_masked = equalised_image*facemask
+        
+        blend_im = face_masked + back_masked
+        # visualise: Image.fromarray(blend_im.astype('uint8'))
+        return blend_im
 
 
-def block_break(win, f, block_no,maxblock):
-    timer=3
+def block_break(win, f, block_no,maxblock, language):
+    timer=20
     # timer=1
     blocktext = visual.TextStim(win,height=32, font="Palatino Linotype",alignHoriz='center',wrapWidth=1000)   
     timertext = visual.TextStim(win,height=32, pos=[0,-300], font="Palatino Linotype",alignHoriz='center')   
     
+    if language == 'en':
+        rest_text = f"""Please take a short rest before the next block.\n
+        You can press "SPACE" to start again after {timer} seconds\n
+        when you are ready.\n\nBlock: {block_no}/{maxblock}"""
+        ready_text = """READY"""
+    elif language == 'fr':
+        rest_text = f"""Veuillez vous reposer un peu avant le prochain bloc.\n
+        Vous pouvez appuyer sur "ESPACE" pour recommencer après {timer} secondes\n
+        lorsque vous êtes prêt.\n\nBloc : {block_no}/{maxblock}"""
+        ready_text = """PRÊT"""
     
-    if block_no % 6 == 0:
-        timer=20
-        # timer=0
-        
-    blocktext.text = f"""Please take a short rest before the next block.
-    You can press "SPACE" to start again after {timer} seconds\n when you
-    are ready.\n\n Block: {block_no}/{maxblock}"""
+    blocktext.text = rest_text
     
     for time in range(timer):
         timer -= 1
@@ -112,7 +117,7 @@ def block_break(win, f, block_no,maxblock):
         core.wait(1)
         win.flip()
         if timer == 0:
-            timertext.text="""READY"""
+            timertext.text = ready_text
             blocktext.draw()
             timertext.draw()
             win.flip()
@@ -213,39 +218,40 @@ def select_recognised_celebs(base_path,foundIm):
 
 
 
-def prepare_practice_trials(alltrials,stim,npractice,practice_dur,signal,framelength):
-    log_key_list = alltrials.blocks['block-6']['HSF_100']['trials'][0].keys()
-    
+def prepare_practice_trials(practice_no,alltrials,session,practice_dur,signal,framelength):
+    conditions = alltrials.blocks[f'block-{random.randint(1, 8)}']
     practice_trial_list = {}
-    for pract_trial in range(npractice):
-        if pract_trial % 2 == 0:
-            trialtype = 'same'
-            pick_list = stim.same_list
-            SF = 'HSF'
+    for trial_no,cond in enumerate(conditions):
+        trial = alltrials.blocks[f'block-{random.randint(1, 8)}'][cond]['trials'][random.randint(0, 15)]
+        
+        if trial_no % 2 == 0:  ## this is just to make sure half of the practice trials
+            matchtype = 'diff' ## have 2 same identities and half are different
         else:
-            trialtype = 'diff'
-            pick_list = stim.diff_list
-            SF = 'LSF'
-        rndBack = f'BG0{random.randint(1,len(stim.unique_nr["BG"]))}'
-        rndBlock = random.randint(0,int(len(pick_list[rndBack])-1))
-        rndTrial = random.randint(0,int(len(pick_list[rndBack][rndBlock])-1))
-        pick_list = pick_list[rndBack][rndBlock][rndTrial]
-        trial = {
-            'block' : 'practice',
-            'trialno' : pract_trial,
-            'stim1' : pick_list[0],
-            'stim2' : pick_list[1],
-            'matching' : trialtype,
-            'mask' : f'{pick_list[0][:-4]}_{SF}.bmp',
-            'duration' : practice_dur,
-            'nframes' : nframes(practice_dur,framelength),
-            'SF' : SF,
-            'background' : f'{rndBack}.bmp',
-            'staircasenr': '',
-            'rt' : 0,
-            'acc' : 0,
-            'contrast' : signal}
-        practice_trial_list[pract_trial]  = trial
+            matchtype = 'same'
+        while matchtype != trial['matching']:
+            trial = alltrials.blocks[f'block-{random.randint(1, 8)}'][cond]['trials'][random.randint(0, 15)]
+            
+        trial['session'] = session
+        trial['block'] = practice_no
+        trial['trialno'] = trial_no
+        trial['contrast'] = random.randint(int(signal/2), signal)
+        
+        if practice_no == 'pract-01':
+            trial['duration'] = random.randint(int(practice_dur/2), practice_dur)
+            trial['nframes'] = nframes(practice_dur,framelength)
+            trial['contrast'] = signal
+           
+        practice_trial_list[trial_no] = trial
+        
+
+            
+    keys = list(practice_trial_list.keys())
+    random.shuffle(keys)
+    shuff_practice_trial_list = dict()
+    for key in keys:
+        shuff_practice_trial_list.update({key: practice_trial_list[key]})
+    practice_trial_list = shuff_practice_trial_list
+        
     return practice_trial_list
 
 #%% =============================================================================
@@ -349,6 +355,7 @@ class Ordertrials(object):
                                     # this is doubled to have the same/diff conditions for the matching task (2*6 = 12)
                                     # this is doubled because there are 2 staircases per condition (2*12 = 24)
                                     self.trial_list[trial_name].append({
+                                        'session' : [],
                                         'block' : [],
                                         'trialno' : 0,
                                         'stim1' : combi_per_id[num1],
@@ -414,11 +421,11 @@ class Ordertrials(object):
             shuffled_bigblocks.update({key: blocklist[key]})
         self.blocks = shuffled_bigblocks
 
-    def prepare_staircare(self,nTrials,signal_start,signal_end,steps):
+    def prepare_staircare(self,nTrials,signal_start,signal_end,steps,thresholdPrior):
         for block in self.blocks:
             for cond in self.blocks[block]:
                 for stairnr in self.stair:
-                    self.blocks[block][cond][f'stair-{stairnr}'] = makePsi(nTrials,signal_start,signal_end,steps)
+                    self.blocks[block][cond][f'stair-{stairnr}'] = makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior)
         
 
  # =============================================================================       
