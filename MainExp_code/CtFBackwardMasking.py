@@ -453,8 +453,8 @@ if exp_info['Skip practice'] == '0':
                     namepage.pos = (0, 0)
                     namepage.draw()
                     win.flip()
-                    #core.wait(5) #############################################################################
-                    core.wait(.5) #############################################################################
+                    core.wait(5) 
+                    #core.wait(.5) ###for debugging
                     keys = event.getKeys(keyList=['space','escape'])
                     escape_check(keys,win,f)
                 win.flip(clearBuffer=True)
