@@ -150,15 +150,12 @@ for screennr in range(4):
 
 
 # draw fixation cross
-#fix_cross = visual.ShapeStim(win, 
-#    #vertices=((0, -0.3), (0, 0.3), (0,0), (-0.3,0), (0.3, 0)),
-    # vertices=((0, 30), (0, 30), (0,0), (30,0), (30, 0)),
-    # lineWidth=30,
-    # closeShape=False,
-    # lineColor="black"
-    # )
-fix_cross = visual.TextStim(win, height=100, font="Palatino Linotype",color= 'black', alignHoriz='center', wrapWidth=scrsize[0])
-fix_cross.text = '+'
+fix_cross = visual.ShapeStim(win, 
+    vertices=((0, -30), (0, 30), (0,0), (-30,0), (30, 0)),
+    lineWidth=3.5,
+    closeShape=False,
+    lineColor="black"
+    )
 
 
 instructiontexts = load_txt_as_dict(f'{base_path}instructions_{language}.txt')
