@@ -158,7 +158,7 @@ fix_cross = visual.ShapeStim(win,
     )
 
 instructiontexts = load_txt_as_dict(f'{base_path}instructions_{language}.txt')
-textpage = visual.TextStim(win, height=40, font="Palatino Linotype", alignHoriz='center', wrapWidth=scrsize[0])
+textpage = visual.TextStim(win, height=40, font="Palatino Linotype",color= 'black', alignHoriz='center', wrapWidth=scrsize[0])
 
 timer = core.Clock()
 win.mouseVisible = False

@@ -92,8 +92,8 @@ def replace_background(equalised_image, background_image, alphamask):
 def block_break(win, f, block_no,maxblock, language):
     timer=20
     # timer=1
-    blocktext = visual.TextStim(win,height=32, font="Palatino Linotype",alignHoriz='center',wrapWidth=1000)   
-    timertext = visual.TextStim(win,height=32, pos=[0,-300], font="Palatino Linotype",alignHoriz='center')   
+    blocktext = visual.TextStim(win,height=32, color='black', font="Palatino Linotype",alignHoriz='center',wrapWidth=1000)   
+    timertext = visual.TextStim(win,height=32, color='black', pos=[0,-300], font="Palatino Linotype",alignHoriz='center')   
     
     if language == 'en':
         rest_text = f"""Please take a short rest before the next block.\n
