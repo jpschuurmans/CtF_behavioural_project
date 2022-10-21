@@ -204,9 +204,11 @@ def select_recognised_celebs(base_path,foundIm):
             if len(actor) == 3:
                 FinalList3.append(celeb_list[num])
         final_actor_list = random.sample(FinalList, len(FinalList))
-        for i in range(miss):
-            l = random.sample(FinalList3, miss)
-            final_actor_list.append(l[i])            
+        
+        if len(FinalList3) > 0:            
+            for i in range(miss):
+                l = random.sample(FinalList3, miss)
+                final_actor_list.append(l[i])            
     else:    
         final_actor_list = random.sample(FinalList, 10)    
     #convert list to dict with keys
