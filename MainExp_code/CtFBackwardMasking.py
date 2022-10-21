@@ -130,7 +130,8 @@ nframe = num_frames(fix_dur,int_dur,mask_dur,isi_dur,framelength)
 
 #%% ===========================================================================
 # Prepare/open window
-win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color ='grey', units ='pix', fullscr = True)
+
+win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = 'grey', units ='pix', fullscr = True)
 
 # prepare bitmaps for presenting images
 stimsize = [550,550]
@@ -144,6 +145,8 @@ for bit in bitmap:
 prescreen = {}
 for screennr in range(4):
     prescreen[screennr] = visual.ImageStim(win)
+#    prescreen.mask = 'gauss'
+#    prescreen.maskParams = {'sd': 2}
 
 
 # draw fixation cross
@@ -463,10 +466,10 @@ if exp_info['Skip practice'] == '0':
         practice_dur = 200 #500ms for target
         practice_signal = 100
         practice_maskdur = 200
-        accuracy = 0
         
         practice_trial_list = prepare_practice_trials(practice_no,alltrials,session,practice_dur,practice_signal,framelength)
-        while practicing:    
+        while practicing:   
+            accuracy = 0
             for pract_trial in practice_trial_list:
                 pract_trialinfo = practice_trial_list[pract_trial]
                 pract_trialinfo['block'] = pract_trialinfo['block'] + '.' + str(practice_rounds[practice_no])
@@ -521,7 +524,8 @@ if exp_info['Skip practice'] == '0':
                 win.flip(clearBuffer=True)
             
                 writer.writerow(pract_trialinfo)
-            total_acc = int((100/len(practice_trial_list))*accuracy)
+            total_acc = int((accuracy/len(practice_trial_list))*100)
+
             
             
             if total_acc < 75:
