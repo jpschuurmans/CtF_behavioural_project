@@ -89,24 +89,31 @@ def replace_background(equalised_image, background_image, alphamask):
         return blend_im
 
 
-def block_break(win, f, block_no,maxblock, language):
-    timer=20
-    # timer=1
-    blocktext = visual.TextStim(win,height=32, color='black', font="Palatino Linotype",alignHoriz='center',wrapWidth=1000)   
-    timertext = visual.TextStim(win,height=32, color='black', pos=[0,-300], font="Palatino Linotype",alignHoriz='center')   
+def block_break(win,mon, scrsize, screennr, f, f_mini, block_no, maxblock, language,debugging):
+    textwin = win
+    textwin.color = (-.4,-.4,-.4)
+    
+    
+    if debugging:
+        timer=5
+    else:
+        timer=20
+  
     
     if language == 'en':
         rest_text = f"""Please take a short rest before the next block.\n
         You can press "SPACE" to start again after {timer} seconds\n
-        when you are ready.\n\nBlock: {block_no}/{maxblock}"""
+        when you are ready.\n\n\n\n\n\nBlock: {block_no}/{maxblock}"""
         ready_text = """READY"""
     elif language == 'fr':
         rest_text = f"""Veuillez vous reposer un peu avant le prochain bloc.\n
         Vous pouvez appuyer sur "ESPACE" pour recommencer après {timer} secondes\n
-        lorsque vous êtes prêt.\n\nBloc : {block_no}/{maxblock}"""
+        lorsque vous êtes prêt.\n\n\n\n\n\nBloc : {block_no}/{maxblock}"""
         ready_text = """PRÊT"""
-    
-    blocktext.text = rest_text
+        
+    #blocktext = visual.TextStim(win=textwin,height=32, pos=[0, 100], font="Palatino Linotype",alignHoriz='center',wrapWidth=1000, text=rest_text) 
+    blocktext = visual.TextStim(win=textwin,height=32, pos=[0, 100], font="Palatino Linotype", text=rest_text)
+    timertext = visual.TextStim(win=textwin,height=32, pos=[0,-300], font="Palatino Linotype",alignHoriz='center')     
     
     for time in range(timer):
         timer -= 1
@@ -115,17 +122,19 @@ def block_break(win, f, block_no,maxblock, language):
         timertext.text = """:""" + str(timer)
         timertext.draw()
         core.wait(1)
-        win.flip()
+        textwin.flip()
         if timer == 0:
             timertext.text = ready_text
             blocktext.draw()
             timertext.draw()
-            win.flip()
+            textwin.flip()
             
-    keys = event.waitKeys(keyList=['space','escape'])
-    escape_check(keys,win,f)
-    
-    win.flip()
+    # Wait until a response
+    if debugging == False:
+        keys = event.waitKeys(keyList=['s','l','escape','space'])
+        escape_check(keys,win,f,f_mini)
+    win.color = 'gray'        
+    win.flip(clearBuffer=True)
     core.wait(2)
 
 
@@ -224,7 +233,7 @@ def prepare_practice_trials(practice_no,alltrials,session,practice_dur,signal,fr
     conditions = alltrials.blocks[f'block-{random.randint(1, 8)}']
     practice_trial_list = {}
     for trial_no,cond in enumerate(conditions):
-        trial = alltrials.blocks[f'block-{random.randint(1, 8)}'][cond]['trials'][random.randint(0, 15)]
+        trial = copy.deepcopy(alltrials.blocks[f'block-{random.randint(1, 8)}'][cond]['trials'][random.randint(0, 15)])
         
         if trial_no % 2 == 0:  ## this is just to make sure half of the practice trials
             matchtype = 'diff' ## have 2 same identities and half are different
@@ -424,10 +433,10 @@ class Ordertrials(object):
         self.blocks = shuffled_bigblocks
 
     def prepare_staircare(self,nTrials,signal_start,signal_end,steps,thresholdPrior):
-        for block in self.blocks:
+        for block in self.blocks: ## is overwriting it for every block, but too lazy to change now
             for cond in self.blocks[block]:
                 for stairnr in self.stair:
-                    self.blocks[block][cond][f'stair-{stairnr}'] = makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior)
+                    self.blocks['block-1'][cond][f'stair-{stairnr}'] = makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior)
         
 
  # =============================================================================       

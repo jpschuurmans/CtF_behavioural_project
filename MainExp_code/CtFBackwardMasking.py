@@ -68,11 +68,12 @@ exp_info = {
         '4. age' : '',
         '5. screenwidth(cm)' : '59',
         '6. screenwidth(pix)' : '1920',
-        '7. screenhight(pix)' : '1200', # '1080',
-        '8. refreshrate(hz)' : '60', #ViewPixx - Change this (120)
-        '9. screendistance' : '60',
+        '7. screenhight(pix)' : '1200', 
+        '8. refreshrate(hz)' : ('120','60'), #ViewPixx - Change this (120)
+        '9. screendistance' : '57',
         'Prefered language' : ('fr','en'),
-        'Skip practice' : '0'
+        'Monitor' : 'Dell',
+        'debugging' : ('0','1')
         }
 dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name)
     
@@ -86,7 +87,7 @@ exp_info['date'] = data.getDateStr()
 exp_info['exp_name'] = exp_name
 session = exp_info['2. session']
 
-mon = monitors.Monitor('Dell') #Pulls out photometer calibration settings by name.  
+mon = monitors.Monitor(exp_info['Monitor']) #Pulls out photometer calibration settings by name.  
 # Change this if you are using the ViewPixx (you should find the proper name in PsychoPy Monitor Center)
 mon.setDistance(exp_info['9. screendistance'])
 mon.setWidth(exp_info['5. screenwidth(cm)']) # Cm width
@@ -96,6 +97,7 @@ framelength = 1000/(float(framerate))
 mon.setSizePix(scrsize)
 
 language = exp_info['Prefered language'] 
+debugging = int(exp_info['debugging'])
 
 # prepare log file to write the data
 if not os.path.isdir(data_path):
@@ -167,7 +169,7 @@ win.mouseVisible = False
 #%% ===========================================================================
 # only needed for the first session
 instr_pages = range(1,3)
-if session == 'ses-01':
+if session == 'ses-01' and debugging == False:
 # open log file for prescreening
     data_fname = f'{logname}_precreening.csv'
     f = open(data_fname,'a',encoding='UTF8', newline='')
@@ -177,6 +179,7 @@ if session == 'ses-01':
     instr_pages = range(1,5)
 else:
     f='' #against stupid error 
+    f_mini='' #against stupid error 
     
    
 # instruction screen + prescreening celebs
@@ -188,7 +191,7 @@ for page in instr_pages:
     instructions.draw()
     win.flip()
     keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-    escape_check(keys,win,f)
+    escape_check(keys,win,f,f_mini)
 win.flip(clearBuffer=True)
 mouse= event.Mouse(visible = True, win = win)
 
@@ -199,119 +202,125 @@ celeb_save = f'{logname}_selec-celeb.pickle'
 
 # prepare triallist for prescreening
 prestim = Stimuli(f'{stim_path}prescreening/') # prestim.list = all stim (list with all all stim)
-
-# only needed for the first session
-if session == 'ses-01':
-    # prepare triallist for prescreening
-    prescreen_trials = presceen_trials(base_path,prestim,exp_info) #prepare trial list
-    
-    # prepare screens for prescreening
-    answertext = {}
-    answerbox = {}
-    for answer in range(6):
-        answertext[f'rand{answer}'] = visual.TextStim(win, height=32, font="Palatino Linotype", color = "black")
-        answerbox[f'rand{answer}'] = visual.Rect(win, width = 350, height = 100, lineColor = "black", lineWidth = 3)
-    
-    # showing all 4 images of each celeb
-    # if 4 images are recognized then put the celebs in a list and take 10 randomly.
-    foundIm = []
-    #Pretest
-    for prescstim in prescreen_trials:
-        loginfo = f"{exp_info['1. subject (e.g. sub-00)']}, {prescstim}"
-        for text in prescreen_trials[prescstim]:
-            loginfo = f"{loginfo}, {prescreen_trials[prescstim][text]}"
-        prescreen[0].setImage(f'{stim_path}prescreening/' + prescreen_trials[prescstim]['im_path'])
-        prescreen[0].pos=(0, 0)
-        prescreen[0].draw()
-        win.flip() #fliping the screen to show images
-        core.wait(0.5) #present images for 500ms
-        win.flip()
-        event.clearEvents()
-        mouse.clickReset()
+if debugging == False:
+    # only needed for the first session
+    if session == 'ses-01':
+        # prepare triallist for prescreening
+        prescreen_trials = presceen_trials(base_path,prestim,exp_info) #prepare trial list
         
-        for ans_num,answers in enumerate(answertext):
-            if answers == 'rand4':
-                answertext[answers].text = prescreen_trials[prescstim]['im_name']
-                answertext[answers].pos = prescreen_trials[prescstim]['im_pos']
-            elif answers == 'rand5':
-                answertext[answers].text = instructiontexts['idk']
-                answerbox[answers].fillColor = "white"
-                answerbox[answers].opacity = .2
-            else:
-                answertext[answers].text = prescreen_trials[prescstim][f'rand{ans_num}_name']
-                answertext[answers].pos = prescreen_trials[prescstim][f'rand{ans_num}_pos']
-            answertext[answers].draw()
-            answerbox[answers].pos = tuple(answertext[answers].pos)
-            answerbox[answers].draw()
-        win.flip()
-        keys = event.getKeys(keyList=['space','escape'])
-        escape_check(keys,win,f)
+        # prepare screens for prescreening
+        answertext = {}
+        answerbox = {}
+        for answer in range(6):
+            answertext[f'rand{answer}'] = visual.TextStim(win, height=32, font="Palatino Linotype", color = "black")
+            answerbox[f'rand{answer}'] = visual.Rect(win, width = 350, height = 100, lineColor = "black", lineWidth = 3)
         
-        #measure responses
-        timer.reset()
-        Ans = False
-        
-        while Ans == False:
+        # showing all 4 images of each celeb
+        # if 4 images are recognized then put the celebs in a list and take 10 randomly.
+        foundIm = []
+        #Pretest
+        for prescstim in prescreen_trials:
+            loginfo = f"{exp_info['1. subject (e.g. sub-00)']}, {prescstim}"
+            for text in prescreen_trials[prescstim]:
+                loginfo = f"{loginfo}, {prescreen_trials[prescstim][text]}"
+            prescreen[0].setImage(f'{stim_path}prescreening/' + prescreen_trials[prescstim]['im_path'])
+            prescreen[0].pos=(0, 0)
+            prescreen[0].draw()
+            win.flip() #fliping the screen to show images
+            core.wait(0.5) #present images for 500ms
+            win.flip()
+            event.clearEvents()
+            mouse.clickReset()
+            
+            for ans_num,answers in enumerate(answertext):
+                if answers == 'rand4':
+                    answertext[answers].text = prescreen_trials[prescstim]['im_name']
+                    answertext[answers].pos = prescreen_trials[prescstim]['im_pos']
+                elif answers == 'rand5':
+                    answertext[answers].text = instructiontexts['idk']
+                    answerbox[answers].fillColor = "white"
+                    answerbox[answers].opacity = .2
+                else:
+                    answertext[answers].text = prescreen_trials[prescstim][f'rand{ans_num}_name']
+                    answertext[answers].pos = prescreen_trials[prescstim][f'rand{ans_num}_pos']
+                answertext[answers].draw()
+                answerbox[answers].pos = tuple(answertext[answers].pos)
+                answerbox[answers].draw()
+            win.flip()
             keys = event.getKeys(keyList=['space','escape'])
-            escape_check(keys,win,f)
-            if mouse.getPressed() [0]==1:
-                mousepos = mouse.getPos()
-                
-                time = timer.getTime()  
-                
-                #print(mousepos)
-                #check if subject gave correct answer
-                del answers 
-                for answers in answerbox:
-                    if answerbox[answers].contains(mousepos):
-                        if answers == 'rand4':
-                            answer_celeb = prescreen_trials[prescstim]['im_name']
-                            correct = 1
-                            foundIm.append(answer_celeb)
-                            Ans = True
-                        elif answers == 'rand5':
-                            answer_celeb = 'idk'
-                            correct = 0
-                            Ans = True
-                        elif answers == 'rand0' or answers == 'rand1' or answers == 'rand2' or answers == 'rand3':
-                            answer_celeb = prescreen_trials[prescstim][f'{answers}_name']
-                            correct = 0
-                            Ans = True
-                            
-    
-        toSave = f"{loginfo}, {answer_celeb}, {mousepos}, {str(correct)}, {str(time)}\n"
-        f.write(toSave)
-        win.flip()
-
-        core.wait(0.5)
-        event.clearEvents()
-        mouse.clickReset() 
-    
-    #select the final celebirties to be used in the experiment
-    final_celeb_list = select_recognised_celebs(base_path,foundIm)
-    
-    #pickling this final celeb dict (Pickle Rick)
-    with open(celeb_save, 'wb') as file:
-        file.write(pickle.dumps(final_celeb_list)) # use `pickle.load` to do the reverse
-    
-    if len(final_celeb_list) < 10:   
-        textpage.text  = instructiontexts["oops"]
-        textpage.draw()
-        win.flip()
+            escape_check(keys,win,f,f_mini)
+            
+            #measure responses
+            timer.reset()
+            Ans = False
+            
+            while Ans == False:
+                keys = event.getKeys(keyList=['space','escape'])
+                escape_check(keys,win,f,f_mini)
+                if mouse.getPressed() [0]==1:
+                    mousepos = mouse.getPos()
+                    
+                    time = timer.getTime()  
+                    
+                    #print(mousepos)
+                    #check if subject gave correct answer
+                    del answers 
+                    for answers in answerbox:
+                        if answerbox[answers].contains(mousepos):
+                            if answers == 'rand4':
+                                answer_celeb = prescreen_trials[prescstim]['im_name']
+                                correct = 1
+                                foundIm.append(answer_celeb)
+                                Ans = True
+                            elif answers == 'rand5':
+                                answer_celeb = 'idk'
+                                correct = 0
+                                Ans = True
+                            elif answers == 'rand0' or answers == 'rand1' or answers == 'rand2' or answers == 'rand3':
+                                answer_celeb = prescreen_trials[prescstim][f'{answers}_name']
+                                correct = 0
+                                Ans = True
+                                
         
-        keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-        escape_check(keys,win,f)
+            toSave = f"{loginfo}, {answer_celeb}, {mousepos}, {str(correct)}, {str(time)}\n"
+            f.write(toSave)
+            win.flip()
+    
+            core.wait(0.5)
+            event.clearEvents()
+            mouse.clickReset() 
+        
+        #select the final celebirties to be used in the experiment
+        final_celeb_list = select_recognised_celebs(base_path,foundIm)
+        
+        #pickling this final celeb dict (Pickle Rick)
+        with open(celeb_save, 'wb') as file:
+            file.write(pickle.dumps(final_celeb_list)) # use `pickle.load` to do the reverse
+        
+        if len(final_celeb_list) < 10:   
+            textpage.text  = instructiontexts["oops"]
+            textpage.draw()
+            win.flip()
+            
+            keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
+            escape_check(keys,win,f,f_mini)
+            f.close()
+            f_mini.close()
+            win.close()
+            core.quit()
+        
         f.close()
-        win.close()
-        core.quit()
-    
-    f.close()    
-        
-elif session == 'ses-02':
-    #load celeb dict (unpickle it)
+        f_mini.close()
+            
+    elif session == 'ses-02':
+        #load celeb dict (unpickle it)
+        with open(celeb_save, 'rb') as file:
+            final_celeb_list = pickle.load(file)
+elif debugging:
+    celeb_save = f'{data_path}debugging_selec-celeb.pickle'
     with open(celeb_save, 'rb') as file:
-        final_celeb_list = pickle.load(file)
-
+            final_celeb_list = pickle.load(file)
+            
 win.mouseVisible = False
 
 #%% ===========================================================================
@@ -362,9 +371,9 @@ if session == 'ses-01':
 
     # nTrials is trials PER staircase
     nTrials = int((trials_per_block/len(alltrials.stair))*n_bigblock)
-    signal_start = 60 # signal of blending (e.g. signal = 30, alpha = 70)
+    signal_start = 80 # signal of blending (e.g. signal = 30, alpha = 70)
     signal_end = 20
-    steps = 40
+    steps = 60
     thresholdPrior=('normal',150,5)############################################## change for visibility
     
     # initialize a staircase for each condition
@@ -401,68 +410,71 @@ writer_mini.writeheader()
 
 #%% ===========================================================================
 # instruction screen + preparation screen
-if exp_info['Skip practice'] == '0':
-    
-    practice_rounds = {'pract-01' : 1,
-                       'pract-02' : 1}
 
-    for pracnr,practice_no in enumerate(practice_rounds):
-        practicing = True
+
+practice_rounds = {'pract-01' : 1,
+                   'pract-02' : 1}
+
+for pracnr,practice_no in enumerate(practice_rounds):
+    practicing = True
+    
+    if practice_no == 'pract-01':
+        instr_num = range(1,5)
+        show_celebs = True
+    elif practice_no == 'pract-02':
+        instr_num = range(1,4)
+        show_celebs = False
         
-        if practice_no == 'pract-01':
-            instr_num = range(1,5)
-            show_celebs = True
-        elif practice_no == 'pract-02':
-            instr_num = range(1,4)
-            show_celebs = False
-            
-        for page in instr_num: 
-            instruction_pract = textpage
-            instruction_pract.text = instructiontexts[f'pract{int(pracnr+1)}_inst{page}']
-            instruction_pract.draw()
-            if page == 1 and practice_no == 'pract-02':
-                visibility = [30,50,70]
-                pos_list = [(-400,-350), (0,-350), (400, -350)]
-                examplestim = stim_path + 'main/' + alltrials.blocks['block-6']['HSF_100']['trials'][0]['stim1']
-                loaded_image = np.array(Image.open(examplestim))
-                exampleback = back_path + alltrials.blocks['block-6']['HSF_100']['trials'][0]['background']
-                loaded_back = np.array(Image.open(exampleback))
-                for idx,signal in enumerate(visibility):
-                    image2draw = occlude(loaded_image, loaded_back, signal)
-                    image2draw = equalise_im(image2draw,LC)
-                    prescreen[idx].setOri(180) # need to do this because somehow the images are inverted.....
-                    prescreen[idx].setMask('circle')
-                    prescreen[idx].setImage(image2draw)
-                    prescreen[idx].pos = pos_list[idx]
-                    prescreen[idx].draw()
-            win.flip()
-            keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-            escape_check(keys,win,f)
+    for page in instr_num: 
+        instruction_pract = textpage
+        instruction_pract.text = instructiontexts[f'pract{int(pracnr+1)}_inst{page}']
+        instruction_pract.draw()
+        if page == 1 and practice_no == 'pract-02':
+            visibility = [30,50,70]
+            pos_list = [(-400,-350), (0,-350), (400, -350)]
+            examplestim = stim_path + 'main/' + alltrials.blocks['block-6']['HSF_100']['trials'][0]['stim1']
+            loaded_image = np.array(Image.open(examplestim))
+            exampleback = back_path + alltrials.blocks['block-6']['HSF_100']['trials'][0]['background']
+            loaded_back = np.array(Image.open(exampleback))
+            for idx,signal in enumerate(visibility):
+                image2draw = occlude(loaded_image, loaded_back, signal)
+                image2draw = equalise_im(image2draw,LC)
+                prescreen[idx].setOri(180) # need to do this because somehow the images are inverted.....
+                prescreen[idx].setMask('circle')
+                prescreen[idx].setImage(image2draw)
+                prescreen[idx].pos = pos_list[idx]
+                prescreen[idx].draw()
+        win.flip()
+        keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
+        escape_check(keys,win,f,f_mini)
+        win.flip(clearBuffer=True)
+        core.wait(1)
+        if page == 1 and show_celebs:
+            List_pos = [(-250,-250), (250,-250), (-250, 250), (250, 250)]
+            for celebid in final_celeb_list:
+                stimuli = [ x for x in prestim.list if 'ID'+celebid in x ]
+                for im_idx,image in enumerate(stimuli): 
+                    prescreen[im_idx].setImage(f'{stim_path}prescreening/{image}')
+                    prescreen[im_idx].pos=List_pos[im_idx]
+                    prescreen[im_idx].mask = None
+                    prescreen[im_idx].draw()
+                namepage = textpage
+                namepage.text = final_celeb_list[celebid]
+                namepage.pos = (0, 0)
+                namepage.draw()
+                win.flip()
+                if debugging:
+                    core.wait(.5) ###for debugging
+                else:
+                    core.wait(5)
+                keys = event.getKeys(keyList=['space','escape'])
+                escape_check(keys,win,f,f_mini)
             win.flip(clearBuffer=True)
-            core.wait(1)
-            if page == 1 and show_celebs:
-                List_pos = [(-250,-250), (250,-250), (-250, 250), (250, 250)]
-                for celebid in final_celeb_list:
-                    stimuli = [ x for x in prestim.list if 'ID'+celebid in x ]
-                    for im_idx,image in enumerate(stimuli): 
-                        prescreen[im_idx].setImage(f'{stim_path}prescreening/{image}')
-                        prescreen[im_idx].pos=List_pos[im_idx]
-                        prescreen[im_idx].mask = None
-                        prescreen[im_idx].draw()
-                    namepage = textpage
-                    namepage.text = final_celeb_list[celebid]
-                    namepage.pos = (0, 0)
-                    namepage.draw()
-                    win.flip()
-                    core.wait(5) 
-                    #core.wait(.5) ###for debugging
-                    keys = event.getKeys(keyList=['space','escape'])
-                    escape_check(keys,win,f)
-                win.flip(clearBuffer=True)
-                escape_check(keys,win,f)
-                show_celebs = False
-        mouse= event.Mouse(visible = False, win = win)
-        
+            escape_check(keys,win,f,f_mini)
+            show_celebs = False
+    mouse= event.Mouse(visible = False, win = win)
+    
+    if debugging == False:
         # practice trialsss
         practice_dur = 200 #500ms for target
         practice_signal = 100
@@ -497,8 +509,11 @@ if exp_info['Skip practice'] == '0':
                 timer.reset()
                                                         
                 # Wait until a response, or until time limit.
-                keys = event.waitKeys(keyList=['s','l','escape','p'])    
-            
+                if debugging:
+                    keys = ['s']
+                else:
+                    keys = event.waitKeys(keyList=['s','l','escape','p'])  
+                    escape_check(keys,win,f,f_mini)
                 if keys:
                     pract_trialinfo['rt'] = timer.getTime()
                 for drawit in bitmap:
@@ -506,7 +521,7 @@ if exp_info['Skip practice'] == '0':
                 pract_trialinfo['acc'] = 0
                 fb_text = instructiontexts["incorrect" ]
                 if keys:
-                    escape_check(keys,win,f)
+                    escape_check(keys,win,f,f_mini)
                     if 's' in keys and (pract_trialinfo['matching'] == 'same'): # is same
                         pract_trialinfo['acc'] = 1
                         fb_text = instructiontexts["correct" ]
@@ -521,14 +536,14 @@ if exp_info['Skip practice'] == '0':
                 fbpage.draw()
                 win.flip()        
                 core.wait(1)
-                escape_check(keys,win,f)
+                escape_check(keys,win,f,f_mini)
                 win.flip(clearBuffer=True)
             
                 writer.writerow(pract_trialinfo)
             total_acc = int((accuracy/len(practice_trial_list))*100)
 
-            
-            
+        
+        
             if total_acc < 75:
                 fb = 'oops'
             else:
@@ -541,19 +556,20 @@ if exp_info['Skip practice'] == '0':
             win.flip()
             
             keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-            escape_check(keys,win,f)   
+            escape_check(keys,win,f,f_mini) 
                 
             if fb == 'oops' and practice_rounds[practice_no] == 2:
                 f_mini.close()
                 f.close()
+                f_mini.close()
                 win.close()
                 core.quit()
             elif fb == 'oops':
                 practice_rounds[practice_no] = 2
             else:
                 practicing = False
-            
-            
+        
+        
             
 
 #%% ===========================================================================
@@ -564,7 +580,7 @@ for page in range(1,4):
     instruction_pract.draw()
     win.flip()
     keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-    escape_check(keys,win,f)
+    escape_check(keys,win,f,f_mini)
     win.flip(clearBuffer=True)
     core.wait(1)
 
@@ -573,34 +589,43 @@ for page in range(1,4):
 # Main experiment code 
 win.mouseVisible = False
 
+block_order = f'{logname}_block-order.pickle'
+if session == 'ses-01':
 #split nblocks in 2 since there are 2 sessions
-block_keys = dict.fromkeys(alltrials.blocks)
-blocks_ses = {}
-blocks_ses['ses-01'] = []
-blocks_ses['ses-02'] = []
-for idx, blockname in enumerate(block_keys.items()):
-    if idx < int(len(block_keys.items())/2):
-        sesnum = 'ses-01'
-    else:
-        sesnum = 'ses-02'
-    blocks_ses[sesnum].append(blockname[0])
-
+    block_keys = dict.fromkeys(alltrials.blocks)
+    blocks_ses = {}
+    blocks_ses['ses-01'] = []
+    blocks_ses['ses-02'] = []
+    for idx, blockname in enumerate(block_keys.items()):
+        if idx < int(len(block_keys.items())/2):
+            sesnum = 'ses-01'
+        else:
+            sesnum = 'ses-02'
+        blocks_ses[sesnum].append(blockname[0])
+        
+    #pickling this block_order per session (Pickle Rick)
+    with open(block_order, 'wb') as file:
+        file.write(pickle.dumps(blocks_ses)) # use `pickle.load` to do the reverse
+else:
+    with open(block_order, 'rb') as file:
+        blocks_ses = pickle.load(file)
         
 
 # Start experiment
 for bl,block in enumerate(blocks_ses[session]):
-    for cond in alltrials.blocks[block]:
-        print(cond)
+    for condnr,cond in enumerate(alltrials.blocks[block]):
         condition = alltrials.blocks[block][cond]
+        stairs = alltrials.blocks['block-1'][cond]
         for idx,trialinfo in enumerate(condition['trials']):
             fix_cross.setAutoDraw(True)
-            staircase = condition[f'stair-{trialinfo["staircasenr"]}']
+            staircase = stairs[f'stair-{trialinfo["staircasenr"]}']
+            
             nframe['stim1'] = trialinfo['nframes']
             
             while staircase.xCurrent == None:
                 pass
             trialinfo['contrast'] = staircase.xCurrent
-            print(staircase.xCurrent)
+            print(f'block {bl}    -    {condnr} {cond}    -    trial {idx}    -    {staircase.xCurrent}')
             
             #load stim1, stim2 and mask
             drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC)
@@ -622,7 +647,14 @@ for bl,block in enumerate(blocks_ses[session]):
             timer.reset()
                                             
             # Wait until a response
-            keys = event.waitKeys(keyList=['s','l','escape','p'])    
+            if debugging:
+                esc_key = event.getKeys(keyList=['space','escape'])
+                escape_check(esc_key,win,f,f_mini)
+                keys = ['s']
+            else:
+                keys = event.waitKeys(keyList=['s','l','escape','p'])
+                escape_check(keys,win,f,f_mini)
+            
             bitmap['fix'].draw()
             fix_cross.setAutoDraw(True)
             win.flip()
@@ -635,7 +667,7 @@ for bl,block in enumerate(blocks_ses[session]):
 
             trialinfo['acc'] = 0
             if keys:
-                escape_check(keys,win,f)
+                escape_check(keys,win,f,f_mini)
                 if 's' in keys and (trialinfo['matching'] == 'same'): # is same
                     trialinfo['acc'] = 1
                 elif 'l' in keys and (trialinfo['matching'] == 'diff'): # is different
@@ -647,6 +679,7 @@ for bl,block in enumerate(blocks_ses[session]):
             
             #update staircase
             staircase.addData(trialinfo['acc'])
+            alltrials.blocks['block-1'][cond][f'stair-{trialinfo["staircasenr"]}'] = staircase
             writer.writerow(trialinfo)
             
             #write minilog for analysis
@@ -654,15 +687,19 @@ for bl,block in enumerate(blocks_ses[session]):
                 writer_mini.writerow(trialinfo)
                 
     if bl == 3: # end of session 
+        fix_cross.setAutoDraw(False)    
         instructions = textpage
-        instructions.text = instructiontexts["end_{session}"]
+        instructions.text = instructiontexts[f"end_{session}"]
         instructions.draw()
         win.flip()
         keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-        escape_check(keys,win,f)
-    else: # block break
-        block_break(win,f,int(bl+1),len(blocks_ses[session]),language)
-
+        escape_check(keys,win,f,f_mini)
+    else: # block break            
+        block_break(win, mon, scrsize, screennr, f, f_mini, int(bl+1),len(blocks_ses[session]),language,debugging)
+        
+with open(alltrials_pickle, 'wb') as file:
+    pickle.dump(alltrials, file)
+    
 f_mini.close()
 f.close()
 win.close()

@@ -15,11 +15,12 @@ from JS_psychopyfunctions import *
 import json
 
 #%% =============================================================================
-def escape_check(keys,win,f):
+def escape_check(keys,win,f,f_mini):
     # close window and logfile if escape is pressed
     if 'escape' in keys:
         win.close()
         f.close()
+        f_mini.close()
         
 def load_txt_as_dict(path):
     with open(path, 'r', encoding='utf-8') as f:
