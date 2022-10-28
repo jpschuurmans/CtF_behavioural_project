@@ -14,7 +14,8 @@ Psychophysical coarse-to-fine backward masking.
 #%% ===========================================================================
 # paths
 
-base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
+#base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
+base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
 
 stim_path = f'{base_path}stimuli/'
 mask_path = f'{base_path}masks/'
@@ -72,8 +73,8 @@ exp_info = {
         '8. refreshrate(hz)' : ('120','60'), #ViewPixx - Change this (120)
         '9. screendistance' : '57',
         'Prefered language' : ('fr','en'),
-        'Monitor' : 'Dell',
-        'debugging' : ('0','1')
+        'Monitor' : ('Vpixx040821','Dell'),
+        'debugging' : ('0','1','2')
         }
 dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name)
     
@@ -169,7 +170,7 @@ win.mouseVisible = False
 #%% ===========================================================================
 # only needed for the first session
 instr_pages = range(1,3)
-if session == 'ses-01' and debugging == False:
+if session == 'ses-01' and debugging == 0:
 # open log file for prescreening
     data_fname = f'{logname}_precreening.csv'
     f = open(data_fname,'a',encoding='UTF8', newline='')
@@ -179,7 +180,7 @@ if session == 'ses-01' and debugging == False:
     instr_pages = range(1,5)
 else:
     f='' #against stupid error 
-    f_mini='' #against stupid error 
+f_mini='' #against stupid error 
     
    
 # instruction screen + prescreening celebs
@@ -202,7 +203,7 @@ celeb_save = f'{logname}_selec-celeb.pickle'
 
 # prepare triallist for prescreening
 prestim = Stimuli(f'{stim_path}prescreening/') # prestim.list = all stim (list with all all stim)
-if debugging == False:
+if debugging == 0:
     # only needed for the first session
     if session == 'ses-01':
         # prepare triallist for prescreening
@@ -310,13 +311,13 @@ if debugging == False:
             core.quit()
         
         f.close()
-        f_mini.close()
+        #f_mini.close()
             
     elif session == 'ses-02':
         #load celeb dict (unpickle it)
         with open(celeb_save, 'rb') as file:
             final_celeb_list = pickle.load(file)
-elif debugging:
+elif debugging == 1 or debugging == 2:
     celeb_save = f'{data_path}debugging_selec-celeb.pickle'
     with open(celeb_save, 'rb') as file:
             final_celeb_list = pickle.load(file)
@@ -463,7 +464,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 namepage.pos = (0, 0)
                 namepage.draw()
                 win.flip()
-                if debugging:
+                if debugging == 1:
                     core.wait(.5) ###for debugging
                 else:
                     core.wait(5)
@@ -474,7 +475,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
             show_celebs = False
     mouse= event.Mouse(visible = False, win = win)
     
-    if debugging == False:
+    if debugging == 0 or debugging == 2:
         # practice trialsss
         practice_dur = 200 #500ms for target
         practice_signal = 100
@@ -509,11 +510,8 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 timer.reset()
                                                         
                 # Wait until a response, or until time limit.
-                if debugging:
-                    keys = ['s']
-                else:
-                    keys = event.waitKeys(keyList=['s','l','escape','p'])  
-                    escape_check(keys,win,f,f_mini)
+                keys = event.waitKeys(keyList=['s','l','escape','p'])  
+                escape_check(keys,win,f,f_mini)
                 if keys:
                     pract_trialinfo['rt'] = timer.getTime()
                 for drawit in bitmap:
@@ -647,7 +645,7 @@ for bl,block in enumerate(blocks_ses[session]):
             timer.reset()
                                             
             # Wait until a response
-            if debugging:
+            if debugging == 1:
                 esc_key = event.getKeys(keyList=['space','escape'])
                 escape_check(esc_key,win,f,f_mini)
                 keys = ['s']

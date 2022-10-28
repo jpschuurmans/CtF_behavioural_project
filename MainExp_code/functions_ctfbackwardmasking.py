@@ -94,7 +94,7 @@ def block_break(win,mon, scrsize, screennr, f, f_mini, block_no, maxblock, langu
     textwin.color = (-.4,-.4,-.4)
     
     
-    if debugging:
+    if debugging == 1 or debugging ==2:
         timer=5
     else:
         timer=20
@@ -130,11 +130,12 @@ def block_break(win,mon, scrsize, screennr, f, f_mini, block_no, maxblock, langu
             textwin.flip()
             
     # Wait until a response
-    if debugging == False:
+    if debugging == 0 or debugging == 2:
         keys = event.waitKeys(keyList=['s','l','escape','space'])
         escape_check(keys,win,f,f_mini)
     win.color = 'gray'        
     win.flip(clearBuffer=True)
+    del blocktext, timertext
     core.wait(2)
 
 
