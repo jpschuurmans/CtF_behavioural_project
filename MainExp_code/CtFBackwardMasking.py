@@ -14,8 +14,8 @@ Psychophysical coarse-to-fine backward masking.
 #%% ===========================================================================
 # paths
 
-base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
-#base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
+#base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
+base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
 
 stim_path = f'{base_path}stimuli/'
 mask_path = f'{base_path}masks/'
@@ -281,7 +281,7 @@ if debugging == 0:
                             elif answers == 'rand6':
                                 answer_celeb = 'familiar face'
                                 correct = 1
-                                foundIm.append(answer_celeb)
+                                foundIm.append(prescreen_trials[prescstim]['im_name'])
                                 Ans = True
                             elif answers == 'rand5':
                                 answer_celeb = 'idk'
