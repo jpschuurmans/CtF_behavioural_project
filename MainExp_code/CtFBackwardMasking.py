@@ -14,15 +14,15 @@ Psychophysical coarse-to-fine backward masking.
 #%% ===========================================================================
 # paths
 
-base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
-#base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
+#base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
+base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
 
 stim_path = f'{base_path}stimuli/'
 mask_path = f'{base_path}masks/'
 back_path = f'{base_path}background/'
 data_path = f'{base_path}data/'
 asfx='.bmp'
-save_path = f'{base_path}saved_images/' ####### for screenshotting a trial
+#save_path = f'{base_path}saved_images/' ####### for screenshotting a trial
 
 #%% ===========================================================================
 # imports
