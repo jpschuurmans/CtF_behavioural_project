@@ -14,15 +14,15 @@ Psychophysical coarse-to-fine backward masking.
 #%% ===========================================================================
 # paths
 
-#base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
-base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
+base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
+#base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
 
 stim_path = f'{base_path}stimuli/'
 mask_path = f'{base_path}masks/'
 back_path = f'{base_path}background/'
 data_path = f'{base_path}data/'
 asfx='.bmp'
-#save_path = f'{base_path}saved_images/' ####### for screenshotting a trial
+save_path = f'{base_path}saved_images/' ####### for screenshotting a trial
 
 #%% ===========================================================================
 # imports
@@ -229,6 +229,7 @@ if debugging == 0:
             win.flip() #fliping the screen to show images
             core.wait(0.5) #present images for 500ms
             win.flip()
+
             event.clearEvents()
             mouse.clickReset()
             
@@ -514,7 +515,6 @@ for pracnr,practice_no in enumerate(practice_rounds):
                     for nFrames in range(nframe[window]):
                         bitmap[window].draw()
                         win.flip()
-            
                 timer.reset()
                                                         
                 # Wait until a response, or until time limit.
@@ -540,7 +540,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 fbpage = textpage
                 fbpage.text = fb_text
                 fbpage.draw()
-                win.flip()        
+                win.flip()
                 core.wait(1)
                 escape_check(keys,win,f)
                 win.flip(clearBuffer=True)
@@ -560,7 +560,6 @@ for pracnr,practice_no in enumerate(practice_rounds):
             end_practice.text = text2print.replace('{total_acc}', str(total_acc))
             end_practice.draw()
             win.flip()
-            
             keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
             escape_check(keys,win,f) 
                 
@@ -685,10 +684,7 @@ for bl,block in enumerate(blocks_ses[session]):
             staircase.addData(trialinfo['acc'])
             alltrials.blocks['block-1'][cond][f'stair-{trialinfo["staircasenr"]}'] = staircase
             writer.writerow(trialinfo)
-            
-            #write minilog for analysis
-            if session == 'ses-02' and bl == 3:
-                writer_mini.writerow(trialinfo)
+
                 
     if bl == 3: # end of session 
         fix_cross.setAutoDraw(False)    

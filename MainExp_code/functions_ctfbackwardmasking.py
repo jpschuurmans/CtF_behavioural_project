@@ -123,12 +123,14 @@ def block_break(win,mon, scrsize, screennr, f, block_no, maxblock, language,debu
         timertext.draw()
         core.wait(1)
         textwin.flip()
+
         if timer == 0:
             timertext.text = ready_text
             blocktext.draw()
             timertext.draw()
             textwin.flip()
             
+                
     # Wait until a response
     if debugging == 0 or debugging == 2:
         keys = event.waitKeys(keyList=['s','l','escape','space'])
