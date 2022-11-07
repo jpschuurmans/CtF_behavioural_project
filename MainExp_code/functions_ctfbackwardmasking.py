@@ -103,13 +103,13 @@ def block_break(win,mon, scrsize, screennr, f, f_mini, block_no, maxblock, langu
     if language == 'en':
         rest_text = f"""Please take a short rest before the next block.\n
         You can press "SPACE" to start again after {timer} seconds\n
-        when you are ready.\n\n\n\n\n\nBlock: {block_no}/{maxblock}"""
+        when you are ready.\n\n\n\n\n\n\nBlock: {block_no}/{maxblock}"""
         ready_text = """READY"""
     elif language == 'fr':
         rest_text = f"""Veuillez vous reposer un peu avant le prochain bloc.\n
         Vous pouvez appuyer sur "ESPACE" pour recommencer après {timer} secondes\n
-        lorsque vous êtes prêt.\n\n\n\n\n\nBloc : {block_no}/{maxblock}"""
-        ready_text = """PRÊT"""
+        lorsque vous êtes prêt.e.\n\n\n\n\n\n\nBloc : {block_no}/{maxblock}"""
+        ready_text = """PRÊT.E"""
         
     #blocktext = visual.TextStim(win=textwin,height=32, pos=[0, 100], font="Palatino Linotype",alignHoriz='center',wrapWidth=1000, text=rest_text) 
     blocktext = visual.TextStim(win=textwin,height=32, pos=[0, 100], font="Palatino Linotype", text=rest_text)
@@ -215,7 +215,7 @@ def select_recognised_celebs(base_path,foundIm):
                 FinalList3.append(celeb_list[num])
         final_actor_list = random.sample(FinalList, len(FinalList))
         
-        if len(FinalList3) > 0:            
+        if len(FinalList3) > 0 and len(FinalList3) >= miss:  ####only thing I added was 'and len(FinalList3) >= miss:'
             for i in range(miss):
                 l = random.sample(FinalList3, miss)
                 final_actor_list.append(l[i])            
