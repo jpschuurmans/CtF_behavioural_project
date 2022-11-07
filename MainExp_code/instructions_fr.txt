@@ -20,7 +20,8 @@
 "great2_pract" : "Super, cette fois vous aviez {total_acc}% de bonnes réponses.\n\n\nAppuyez sur la touche « espace » pour continuer.",
 "incorrect" : "Erreur",
 "correct" : "Bien !",
-"idk" : "Je ne sais pas",
+"idk" : "??",
+"know_face" : "Je connais le visage,\nmais pas le nom",
 "end_ses-01" : "Bon travail !\n\nC'est la fin de la première session.\n\nVeuillez contacter l'expérimentateur.",
 "end_ses-02" : "Bon travail !\n\nC'est la fin de l'expérience.\nMerci d'avoir participé !\n\nVeuillez contacter l'expérimentateur."
 }

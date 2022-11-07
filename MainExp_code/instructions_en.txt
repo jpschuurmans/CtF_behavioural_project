@@ -20,7 +20,8 @@
 "great2_pract" : "Great, this time you had {total_acc}% correct.\n\n\nPress the 'space' key to continue.",
 "incorrect" : "Wrong",
 "correct" : "Good!",
-"idk" : "I don't know",
+"idk" : "??",
+"know_face" : "I know the face,\njust not the name",
 "end_ses-01" : "Good job!\n\nThis is the end of the first session.\n\nPlease contact the experimenter.",
 "end_ses-02" : "Good job!\n\nThis is the end of the experiment.\nThank you for participating!\n\nPlease contact the experimenter."
 }

@@ -14,8 +14,8 @@ Psychophysical coarse-to-fine backward masking.
 #%% ===========================================================================
 # paths
 
-#base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
-base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
+base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
+#base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
 
 stim_path = f'{base_path}stimuli/'
 mask_path = f'{base_path}masks/'
@@ -180,7 +180,6 @@ if session == 'ses-01' and debugging == 0:
     instr_pages = range(1,5)
 else:
     f='' #against stupid error 
-f_mini='' #against stupid error 
     
    
 # instruction screen + prescreening celebs
@@ -192,7 +191,7 @@ for page in instr_pages:
     instructions.draw()
     win.flip()
     keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-    escape_check(keys,win,f,f_mini)
+    escape_check(keys,win,f)
 win.flip(clearBuffer=True)
 mouse= event.Mouse(visible = True, win = win)
 
@@ -212,7 +211,7 @@ if debugging == 0:
         # prepare screens for prescreening
         answertext = {}
         answerbox = {}
-        for answer in range(6):
+        for answer in range(7):
             answertext[f'rand{answer}'] = visual.TextStim(win, height=32, font="Palatino Linotype", color = "black")
             answerbox[f'rand{answer}'] = visual.Rect(win, width = 350, height = 100, lineColor = "black", lineWidth = 3)
         
@@ -239,8 +238,14 @@ if debugging == 0:
                     answertext[answers].pos = prescreen_trials[prescstim]['im_pos']
                 elif answers == 'rand5':
                     answertext[answers].text = instructiontexts['idk']
-                    answerbox[answers].fillColor = "white"
+                    answerbox[answers].fillColor = "black"
                     answerbox[answers].opacity = .2
+                    answertext[answers].pos = (0, 60)
+                elif answers == 'rand6':
+                    answertext[answers].text = instructiontexts['know_face']
+                    answerbox[answers].fillColor = "white"
+                    answerbox[answers].opacity = .1
+                    answertext[answers].pos = (0, -110)
                 else:
                     answertext[answers].text = prescreen_trials[prescstim][f'rand{ans_num}_name']
                     answertext[answers].pos = prescreen_trials[prescstim][f'rand{ans_num}_pos']
@@ -249,7 +254,7 @@ if debugging == 0:
                 answerbox[answers].draw()
             win.flip()
             keys = event.getKeys(keyList=['space','escape'])
-            escape_check(keys,win,f,f_mini)
+            escape_check(keys,win,f)
             
             #measure responses
             timer.reset()
@@ -257,7 +262,7 @@ if debugging == 0:
             
             while Ans == False:
                 keys = event.getKeys(keyList=['space','escape'])
-                escape_check(keys,win,f,f_mini)
+                escape_check(keys,win,f)
                 if mouse.getPressed() [0]==1:
                     mousepos = mouse.getPos()
                     
@@ -270,6 +275,11 @@ if debugging == 0:
                         if answerbox[answers].contains(mousepos):
                             if answers == 'rand4':
                                 answer_celeb = prescreen_trials[prescstim]['im_name']
+                                correct = 1
+                                foundIm.append(answer_celeb)
+                                Ans = True
+                            elif answers == 'rand6':
+                                answer_celeb = 'familiar face'
                                 correct = 1
                                 foundIm.append(answer_celeb)
                                 Ans = True
@@ -304,14 +314,12 @@ if debugging == 0:
             win.flip()
             
             keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-            escape_check(keys,win,f,f_mini)
+            escape_check(keys,win,f)
             f.close()
-            f_mini.close()
             win.close()
             core.quit()
         
         f.close()
-        #f_mini.close()
             
     elif session == 'ses-02':
         #load celeb dict (unpickle it)
@@ -395,19 +403,19 @@ else:
 # Open and prepare header information for log file
 
 data_fname = f'{logname}_main-data.csv'
-minilog_fname = f'{logname}_main-minilog.csv'
+
 f = open(data_fname,'a',encoding='UTF8', newline='')
-f_mini = open(minilog_fname,'a',encoding='UTF8', newline='')
+
 
 # write header if it is the first session
 
 header_names = list(alltrials.blocks['block-1']['HSF_100']['trials'][0].keys())
 
 writer = csv.DictWriter(f, fieldnames=header_names)
-writer_mini = csv.DictWriter(f_mini, fieldnames=header_names)
+
 
 writer.writeheader()
-writer_mini.writeheader()
+
 
 #%% ===========================================================================
 # instruction screen + preparation screen
@@ -447,7 +455,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 prescreen[idx].draw()
         win.flip()
         keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-        escape_check(keys,win,f,f_mini)
+        escape_check(keys,win,f)
         win.flip(clearBuffer=True)
         core.wait(1)
         if page == 1 and show_celebs:
@@ -469,9 +477,9 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 else:
                     core.wait(5)
                 keys = event.getKeys(keyList=['space','escape'])
-                escape_check(keys,win,f,f_mini)
+                escape_check(keys,win,f)
             win.flip(clearBuffer=True)
-            escape_check(keys,win,f,f_mini)
+            escape_check(keys,win,f)
             show_celebs = False
     mouse= event.Mouse(visible = False, win = win)
     
@@ -511,7 +519,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                                                         
                 # Wait until a response, or until time limit.
                 keys = event.waitKeys(keyList=['s','l','escape','p'])  
-                escape_check(keys,win,f,f_mini)
+                escape_check(keys,win,f)
                 if keys:
                     pract_trialinfo['rt'] = timer.getTime()
                 for drawit in bitmap:
@@ -519,7 +527,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 pract_trialinfo['acc'] = 0
                 fb_text = instructiontexts["incorrect" ]
                 if keys:
-                    escape_check(keys,win,f,f_mini)
+                    escape_check(keys,win,f)
                     if 's' in keys and (pract_trialinfo['matching'] == 'same'): # is same
                         pract_trialinfo['acc'] = 1
                         fb_text = instructiontexts["correct" ]
@@ -534,7 +542,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 fbpage.draw()
                 win.flip()        
                 core.wait(1)
-                escape_check(keys,win,f,f_mini)
+                escape_check(keys,win,f)
                 win.flip(clearBuffer=True)
             
                 writer.writerow(pract_trialinfo)
@@ -554,12 +562,10 @@ for pracnr,practice_no in enumerate(practice_rounds):
             win.flip()
             
             keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-            escape_check(keys,win,f,f_mini) 
+            escape_check(keys,win,f) 
                 
             if fb == 'oops' and practice_rounds[practice_no] == 2:
-                f_mini.close()
                 f.close()
-                f_mini.close()
                 win.close()
                 core.quit()
             elif fb == 'oops':
@@ -578,7 +584,7 @@ for page in range(1,4):
     instruction_pract.draw()
     win.flip()
     keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-    escape_check(keys,win,f,f_mini)
+    escape_check(keys,win,f)
     win.flip(clearBuffer=True)
     core.wait(1)
 
@@ -647,11 +653,11 @@ for bl,block in enumerate(blocks_ses[session]):
             # Wait until a response
             if debugging == 1:
                 esc_key = event.getKeys(keyList=['space','escape'])
-                escape_check(esc_key,win,f,f_mini)
+                escape_check(esc_key,win,f)
                 keys = ['s']
             else:
                 keys = event.waitKeys(keyList=['s','l','escape','p'])
-                escape_check(keys,win,f,f_mini)
+                escape_check(keys,win,f)
             
             bitmap['fix'].draw()
             fix_cross.setAutoDraw(True)
@@ -665,7 +671,7 @@ for bl,block in enumerate(blocks_ses[session]):
 
             trialinfo['acc'] = 0
             if keys:
-                escape_check(keys,win,f,f_mini)
+                escape_check(keys,win,f)
                 if 's' in keys and (trialinfo['matching'] == 'same'): # is same
                     trialinfo['acc'] = 1
                 elif 'l' in keys and (trialinfo['matching'] == 'diff'): # is different
@@ -691,14 +697,14 @@ for bl,block in enumerate(blocks_ses[session]):
         instructions.draw()
         win.flip()
         keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
-        escape_check(keys,win,f,f_mini)
+        escape_check(keys,win,f)
     else: # block break            
-        block_break(win, mon, scrsize, screennr, f, f_mini, int(bl+1),len(blocks_ses[session]),language,debugging)
+        block_break(win, mon, scrsize, screennr, f, int(bl+1),len(blocks_ses[session]),language,debugging)
         
 with open(alltrials_pickle, 'wb') as file:
     pickle.dump(alltrials, file)
     
-f_mini.close()
+
 f.close()
 win.close()
 core.quit()
