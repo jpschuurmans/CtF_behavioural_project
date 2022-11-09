@@ -381,10 +381,10 @@ if session == 'ses-01':
 
     # nTrials is trials PER staircase
     nTrials = int((trials_per_block/len(alltrials.stair))*n_bigblock)
-    signal_start = 80 # signal of blending (e.g. signal = 30, alpha = 70)
-    signal_end = 20
-    steps = 60
-    thresholdPrior=('normal',150,5)############################################## change for visibility
+    signal_start = 100 # signal of blending (e.g. signal = 30, alpha = 70)
+    signal_end = 1
+    steps = 100
+    thresholdPrior=('normal',50,5)############################################## change for visibility
     
     # initialize a staircase for each condition
     alltrials.prepare_staircare(nTrials,signal_start,signal_end,steps,thresholdPrior)

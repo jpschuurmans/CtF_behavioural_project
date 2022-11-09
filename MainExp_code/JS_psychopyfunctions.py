@@ -34,9 +34,9 @@ def nframes(time_in_ms, framelength):
 
 def makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior): # start_thresh is signal strength in percentage
     # Image visibility ranges between signal_start and signal_end, logarithmically, 'steps' possibilities.
-    staircase = PsiMarginal.Psi(stimRange=np.geomspace(signal_start,signal_end,steps,endpoint=True),
+    staircase = PsiMarginal.Psi(stimRange=np.linspace(signal_start,signal_end,steps,endpoint=True),
             Pfunction='Weibull', nTrials=nTrials,
-            threshold=np.geomspace(signal_start,signal_end,steps, endpoint=True), 
+            threshold=np.linspace(signal_start,signal_end,steps, endpoint=True), 
             thresholdPrior=thresholdPrior, slope=np.geomspace(0.5, 20, 50, endpoint=True),
             guessRate=0.5, slopePrior=('gamma',3,6), lapseRate=0.05, lapsePrior=('beta',2,20), marginalize=True)
     return staircase
