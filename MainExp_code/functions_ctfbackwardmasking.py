@@ -435,11 +435,12 @@ class Ordertrials(object):
             shuffled_bigblocks.update({key: blocklist[key]})
         self.blocks = shuffled_bigblocks
 
-    def prepare_staircare(self,nTrials,signal_start,signal_end,steps,thresholdPrior):
-        for block in self.blocks: ## is overwriting it for every block, but too lazy to change now
-            for cond in self.blocks[block]:
-                for stairnr in self.stair:
-                    self.blocks['block-1'][cond][f'stair-{stairnr}'] = makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior)
+    def prepare_staircare(self,nTrials,signal_start,signal_end,steps,thresholdPrior1,thresholdPrior2):
+        for cond in self.blocks['block-1']:
+            self.blocks['block-1'][cond][f'stair-1'] = makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior1)
+            self.blocks['block-1'][cond][f'stair-2'] = makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior2)
+            
+              
         
 
  # =============================================================================       

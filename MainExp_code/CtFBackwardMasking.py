@@ -45,7 +45,7 @@ from JS_psychopyfunctions import *
 # different conditions in experiment
 
 spatialfrequencies = ['LSF','HSF']
-durations = ['25','50','75','100','125','150'] #### change however. 
+durations = ['50','75','100','125','150'] #### change however. 
 #different_conditions = list(itertools.product(spatialfrequencies,durations))
 
 # for the paradigm we need more trial contitions
@@ -369,7 +369,7 @@ if session == 'ses-01':
     # each miniblock has different condition (LSF50,LSF100,LSF150,HSF50,HSF100,HSF150)
     n_bigblock = 8
     miniblock_per_bigblock = len(alltrials.conditionlist)
-    trials_per_block = 16 # that is 8 per staircase
+    trials_per_block = 20 # that is 10 per staircase (used to be 16 -> 8 per staircase)
     
     # creates self.blocks['block-1']['HSF_50']['stair-1'][0] 
     # in this case: 8 blocks, 6 conditions, 2 staircases, 16 trials
@@ -384,10 +384,12 @@ if session == 'ses-01':
     signal_start = 100 # signal of blending (e.g. signal = 30, alpha = 70)
     signal_end = 1
     steps = 100
-    thresholdPrior=('normal',50,5)############################################## change for visibility
+    #thresholdPrior=('normal',50,5)############################################## change for visibility
+    thresholdPrior1=('normal',50,5) #for both staircases. 1 very visible at the beginning
+    thresholdPrior2=('normal',20,5) # second not visible at all... hope this will converge at the end
     
     # initialize a staircase for each condition
-    alltrials.prepare_staircare(nTrials,signal_start,signal_end,steps,thresholdPrior)
+    alltrials.prepare_staircare(nTrials,signal_start,signal_end,steps,thresholdPrior1,thresholdPrior2)
                                 
     with open(alltrials_pickle, 'wb') as file:
         pickle.dump(alltrials, file)
