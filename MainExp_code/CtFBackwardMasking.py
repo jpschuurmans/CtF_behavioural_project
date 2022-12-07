@@ -14,8 +14,8 @@ Psychophysical coarse-to-fine backward masking.
 #%% ===========================================================================
 # paths
 
-#base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
-base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
+base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
+#base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
 
 stim_path = f'{base_path}stimuli/'
 mask_path = f'{base_path}masks/'
@@ -378,19 +378,24 @@ if session == 'ses-01':
 
 
 # make Psi Staircase for all conditions (x2)
+# making normal staircase instead!
 
     # nTrials is trials PER staircase
     nTrials = int((trials_per_block/len(alltrials.stair))*n_bigblock)
-    signal_start = 100 # signal of blending (e.g. signal = 30, alpha = 70)
-    signal_end = 1
-    steps = 100
+    signal_start = 50 # signal of blending (e.g. signal = 30, alpha = 70)
+    steps = [1.5, 1, 0.5] ##### could also be 0.5 (?) play around
+    steptype = 'db' ### could be 'lin' or 'log'
+    nUp = 1
+    nDown = 3 # will result in ~80% acc
+    minVal = 1
+    maxVal = 100
     #thresholdPrior=('normal',50,5)############################################## change for visibility
-    thresholdPrior1=('normal',50,5) #for both staircases. 1 very visible at the beginning
-    thresholdPrior2=('normal',20,5) # second not visible at all... hope this will converge at the end
+    #thresholdPrior1=('normal',50,5) #for both staircases. 1 very visible at the beginning
+    #thresholdPrior2=('normal',20,5) # second not visible at all... hope this will converge at the end
     
     # initialize a staircase for each condition
-    alltrials.prepare_staircare(nTrials,signal_start,signal_end,steps,thresholdPrior1,thresholdPrior2)
-                                
+    alltrials.prepare_staircare(nTrials,signal_start,steps,steptype,nUp,nDown,minVal,maxVal)
+                          
     with open(alltrials_pickle, 'wb') as file:
         pickle.dump(alltrials, file)
         
@@ -627,10 +632,10 @@ for bl,block in enumerate(blocks_ses[session]):
             
             nframe['stim1'] = trialinfo['nframes']
             
-            while staircase.xCurrent == None:
-                pass
-            trialinfo['contrast'] = staircase.xCurrent
-            print(f'block {bl}    -    {condnr} {cond}    -    trial {idx}    -    {staircase.xCurrent}')
+            #while staircase._nextIntensity == None:
+            #    pass
+            trialinfo['contrast'] = staircase._nextIntensity
+            print(f'block {bl}    -    {condnr} {cond}    -    trial {idx}    -    {staircase._nextIntensity}')
             
             #load stim1, stim2 and mask
             drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC)
@@ -670,7 +675,7 @@ for bl,block in enumerate(blocks_ses[session]):
             for drawit in bitmap:
                 bitmap[drawit].clearTextures()
 
-            trialinfo['acc'] = 0
+            trialinfo['acc'] = -1
             if keys:
                 escape_check(keys,win,f)
                 if 's' in keys and (trialinfo['matching'] == 'same'): # is same
@@ -683,7 +688,8 @@ for bl,block in enumerate(blocks_ses[session]):
             trialinfo['session'] = session
             
             #update staircase
-            staircase.addData(trialinfo['acc'])
+            staircase.addData(trialinfo['acc']) ########## Does more than the accuracy and contrast needs to be updated??
+            staircase.intensities.append(trialinfo['contrast'])
             alltrials.blocks['block-1'][cond][f'stair-{trialinfo["staircasenr"]}'] = staircase
             writer.writerow(trialinfo)
 

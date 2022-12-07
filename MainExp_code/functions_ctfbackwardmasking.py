@@ -435,10 +435,20 @@ class Ordertrials(object):
             shuffled_bigblocks.update({key: blocklist[key]})
         self.blocks = shuffled_bigblocks
 
-    def prepare_staircare(self,nTrials,signal_start,signal_end,steps,thresholdPrior1,thresholdPrior2):
+    def prepare_staircare(self,nTrials,signal_start,steps,steptype,nUp,nDown,minVal,maxVal):
         for cond in self.blocks['block-1']:
-            self.blocks['block-1'][cond][f'stair-1'] = makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior1)
-            self.blocks['block-1'][cond][f'stair-2'] = makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior2)
+            #self.blocks['block-1'][cond][f'stair-1'] = makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior1)
+            #self.blocks['block-1'][cond][f'stair-2'] = makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior2)
+            self.blocks['block-1'][cond][f'stair-1'] = data.StairHandler(startVal = signal_start,
+                                                                         stepType = steptype, stepSizes=steps,
+                                                                         nUp=nUp, nDown=nDown,  # will home in on the 80% threshold
+                                                                         nTrials=nTrials,
+                                                                         minVal=minVal,maxVal=maxVal)
+            self.blocks['block-1'][cond][f'stair-2'] = data.StairHandler(startVal = signal_start,
+                                                                         stepType = steptype, stepSizes=steps,
+                                                                         nUp=nUp, nDown=nDown,  # will home in on the 80% threshold
+                                                                         nTrials=nTrials,
+                                                                         minVal=minVal,maxVal=maxVal)           
             
               
         
