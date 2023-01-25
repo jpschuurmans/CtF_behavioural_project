@@ -14,8 +14,7 @@ Psychophysical coarse-to-fine backward masking.
 #%% ===========================================================================
 # paths
 
-base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
-#base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
+base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
 
 stim_path = f'{base_path}stimuli/'
 mask_path = f'{base_path}masks/'
@@ -56,7 +55,7 @@ staircases = ['1','2']
 LC = [0.45, 0.1] # [0.45, 0.1] if between 0 and 1
 #occluded_image = (occluded_image*LC[1]) + LC[0]   # desired luminance and contrast
 
-screennr=2
+screennr=1
 
 #%% ===========================================================================
 # monitor setup + subject info
@@ -383,10 +382,10 @@ if session == 'ses-01':
     # nTrials is trials PER staircase
     nTrials = int((trials_per_block/len(alltrials.stair))*n_bigblock)
     signal_start = 50 # signal of blending (e.g. signal = 30, alpha = 70)
-    steps = [1.5, 1, 0.5] ##### could also be 0.5 (?) play around
+    steps = [0.5] ##### could also be 0.5 (?) play around
     steptype = 'db' ### could be 'lin' or 'log'
     nUp = 1
-    nDown = 3 # will result in ~80% acc
+    nDown = 2 # will result in ~80% acc
     minVal = 1
     maxVal = 100
     #thresholdPrior=('normal',50,5)############################################## change for visibility
@@ -480,7 +479,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 namepage.pos = (0, 0)
                 namepage.draw()
                 win.flip()
-                if debugging == 1:
+                if debugging == 1 or debugging == 2:
                     core.wait(.5) ###for debugging
                 else:
                     core.wait(5)
@@ -491,7 +490,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
             show_celebs = False
     mouse= event.Mouse(visible = False, win = win)
     
-    if debugging == 0 or debugging == 2:
+    if debugging == 0:
         # practice trialsss
         practice_dur = 200 #500ms for target
         practice_signal = 100
