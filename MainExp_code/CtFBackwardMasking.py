@@ -44,7 +44,7 @@ from JS_psychopyfunctions import *
 # different conditions in experiment
 
 spatialfrequencies = ['LSF','HSF']
-durations = ['50','75','100','125','150'] #### change however. 
+durations = ['50','66','87','114','150'] #### change however. 
 #different_conditions = list(itertools.product(spatialfrequencies,durations))
 
 # for the paradigm we need more trial contitions
@@ -416,7 +416,7 @@ f = open(data_fname,'a',encoding='UTF8', newline='')
 
 # write header if it is the first session
 
-header_names = list(alltrials.blocks['block-1']['HSF_100']['trials'][0].keys())
+header_names = list(alltrials.blocks['block-1']['HSF_50']['trials'][0].keys())
 
 writer = csv.DictWriter(f, fieldnames=header_names)
 
@@ -448,9 +448,9 @@ for pracnr,practice_no in enumerate(practice_rounds):
         if page == 1 and practice_no == 'pract-02':
             visibility = [30,50,70]
             pos_list = [(-400,-350), (0,-350), (400, -350)]
-            examplestim = stim_path + 'main/' + alltrials.blocks['block-6']['HSF_100']['trials'][0]['stim1']
+            examplestim = stim_path + 'main/' + alltrials.blocks['block-6']['HSF_50']['trials'][0]['stim1']
             loaded_image = np.array(Image.open(examplestim))
-            exampleback = back_path + alltrials.blocks['block-6']['HSF_100']['trials'][0]['background']
+            exampleback = back_path + alltrials.blocks['block-6']['HSF_50']['trials'][0]['background']
             loaded_back = np.array(Image.open(exampleback))
             for idx,signal in enumerate(visibility):
                 image2draw = occlude(loaded_image, loaded_back, signal)
@@ -479,7 +479,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 namepage.pos = (0, 0)
                 namepage.draw()
                 win.flip()
-                if debugging == 1 or debugging == 2:
+                if debugging == 1:
                     core.wait(.5) ###for debugging
                 else:
                     core.wait(5)
