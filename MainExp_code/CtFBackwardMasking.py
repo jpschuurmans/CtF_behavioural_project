@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Created on Wed Jan 26 14:41:32 2022
+Created on Wed Jan 26 14:41:32 2022-
 
 Experiment code:
 Psychophysical coarse-to-fine backward masking. 
@@ -44,8 +44,8 @@ from JS_psychopyfunctions import *
 # different conditions in experiment
 
 spatialfrequencies = ['LSF','HSF']
-durations = ['50','66','87','114','150'] #### change however. 
-#different_conditions = list(itertools.product(spatialfrequencies,durations))
+durations = ['50','67','87','114','150'] #### change however. 
+#different_conditions = lis87t(itertools.product(spatialfrequencies,durations))
 
 # for the paradigm we need more trial contitions
 matching = ['same','diff']
@@ -381,7 +381,7 @@ if session == 'ses-01':
 
     # nTrials is trials PER staircase
     nTrials = int((trials_per_block/len(alltrials.stair))*n_bigblock)
-    signal_start = 50 # signal of blending (e.g. signal = 30, alpha = 70)
+    signal_start = 75 # signal of blending (e.g. signal = 30, alpha = 70)
     steps = [0.5] ##### could also be 0.5 (?) play around
     steptype = 'db' ### could be 'lin' or 'log'
     nUp = 1
