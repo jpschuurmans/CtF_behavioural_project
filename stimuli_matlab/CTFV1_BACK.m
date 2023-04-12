@@ -5,10 +5,9 @@
 
 close all; clear; clc
 
-basefolder = '/home/jschuurmans/Documents/02_recurrentSF_3T/recurrentSF_3T_CodeRepo/stimuli_matlab/';
+basefolder = '/home/jschuurmans/Documents/03_SFmasking/Experiment/stimuli_matlab/';
 load([basefolder 'CTFV1_STIM.mat'],'LC','*back', 'imset','nim','nblockspercondition')
-load([basefolder 'CTFV1_PROC.mat'])
-basefolder = '/home/jschuurmans/Documents/02_recurrentSF_3T/recurrentSF_3T_CodeRepo/stimuli_matlab/';
+basefolder = '/home/jschuurmans/Documents/03_SFmasking/Experiment/stimuli_matlab/';
 addpath(basefolder)
 
 outputmat = 'CTFV1_BACK.mat';
