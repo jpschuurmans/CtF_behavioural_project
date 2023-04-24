@@ -174,7 +174,7 @@ if session == 'ses-01' and debugging == 0:
     data_fname = f'{logname}_precreening.csv'
     f = open(data_fname,'a',encoding='UTF8', newline='')
     
-    header_names = 'subject,trial,celeb_id,celeb_name,celeb_image,celeb_position,rand0_name,rand0_pos,rand1_name,rand1_pos,rand2_name,rand2_pos,rand3_name,rand3_pos,answer_celeb,answer_position,correct,rt\n'
+    header_names = 'subject,trial,celeb_id,celeb_name,celeb_image,celeb_pos1,celeb_pos2,rand0_name,rand0_pos1,rand0_pos2,rand1_name,rand1_pos1,rand1_pos2,rand2_name,rand2_pos1,rand2_pos2,rand3_name,rand3_pos1,rand3_pos2,answer_celeb,answer_position,correct,rt\n'
     f.write(header_names)
     instr_pages = range(1,5)
 else:
