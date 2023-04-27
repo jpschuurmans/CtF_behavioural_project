@@ -14,7 +14,9 @@ Psychophysical coarse-to-fine backward masking.
 #%% ===========================================================================
 # paths
 
-base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
+#base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
+# leave the next line, but comment it out, will make it easier for me to debug/edit the code
+base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
 
 stim_path = f'{base_path}stimuli/'
 mask_path = f'{base_path}masks/'
@@ -29,12 +31,12 @@ asfx='.bmp'
 import os
 os.chdir(base_path)
 import numpy as np
-import itertools
+#import itertools
 from psychopy import visual, event, core, gui, data, monitors
 from PIL import Image
 import csv
 import _pickle as pickle
-from itertools import islice
+#from itertools import islice
 from functions_ctfbackwardmasking import *
 from JS_psychopyfunctions import *
 
@@ -51,11 +53,13 @@ durations = ['50','67','87','114','150'] #### change however.
 matching = ['same','diff']
 staircases = ['1','2']
 
+maxCeleb = 8
+
 #desired luminance and contrast of images
 LC = [0.45, 0.1] # [0.45, 0.1] if between 0 and 1
 #occluded_image = (occluded_image*LC[1]) + LC[0]   # desired luminance and contrast
 
-screennr=1
+screennr=2 #################################
 
 #%% ===========================================================================
 # monitor setup + subject info
@@ -69,12 +73,13 @@ exp_info = {
         '5. screenwidth(cm)' : '59',
         '6. screenwidth(pix)' : '1920',
         '7. screenhight(pix)' : '1200', 
-        '8. refreshrate(hz)' : ('120','60'), #ViewPixx - Change this (120)
+        '8. refreshrate(hz)' : ('60','120'), #ViewPixx - Change this (120) #################################
         '9. screendistance' : '57',
-        'Prefered language' : ('fr','en'),
-        'Monitor' : ('Vpixx040821','Dell'),
-        'debugging' : ('0','1','2')
+        'Prefered language' : ('en','fr'), #################################
+        'Monitor' : ('Dell','Vpixx040821'), #################################
+        'debugging' : ('0','1','2','3')
         }
+# debugging 1 skips everything / debugging 2 skips practice / debugging 3 skips prescreening
 dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name)
     
 
@@ -124,11 +129,12 @@ info_file.close()
 # Timing
 
 fix_dur = 500 # fixation before trial input in ms
-int_dur = 500 # time between fixation and trial  
+int_dur = 500 # time between fixation and trial
+stim_dur = 40 # duration of stimulus
 mask_dur = 166 # duration mask
 isi_dur = 300 # duration between mask and stim2
 
-nframe = num_frames(fix_dur,int_dur,mask_dur,isi_dur,framelength)
+nframe = num_frames(fix_dur,stim_dur,int_dur,mask_dur,isi_dur,framelength)
 
 #%% ===========================================================================
 # Prepare/open window
@@ -136,9 +142,9 @@ nframe = num_frames(fix_dur,int_dur,mask_dur,isi_dur,framelength)
 win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = 'grey', units ='pix', fullscr = True)
 
 # prepare bitmaps for presenting images
-stimsize = [550,550]
+stimsize = [450,450] ################################### stimsize needs to change
 
-bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'mask' : [], 'isi' : [], 'stim2' : []}
+bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'isi1' : [], 'mask' : [], 'isi2' : [], 'stim2' : []}
 
 for bit in bitmap:
     bitmap[bit] = visual.ImageStim(win, size=stimsize, mask='circle',interpolate=True)
@@ -153,8 +159,8 @@ for screennr in range(4):
 
 # draw fixation cross
 fix_cross = visual.ShapeStim(win, 
-    vertices=((0, -30), (0, 30), (0,0), (-30,0), (30, 0)),
-    lineWidth=3.5,
+    vertices=((0, -25), (0, 25), (0,0), (-25,0), (25, 0)),
+    lineWidth=2.5,
     closeShape=False,
     lineColor="black"
     )
@@ -199,6 +205,9 @@ mouse= event.Mouse(visible = True, win = win)
 # prescreen subjects if they recognise the celebs
 celeb_save = f'{logname}_selec-celeb.pickle'
 
+    # for debugging: from functions_ctfbackwardmasking import *
+    
+
 # prepare triallist for prescreening
 prestim = Stimuli(f'{stim_path}prescreening/') # prestim.list = all stim (list with all all stim)
 if debugging == 0:
@@ -210,7 +219,7 @@ if debugging == 0:
         # prepare screens for prescreening
         answertext = {}
         answerbox = {}
-        for answer in range(7):
+        for answer in range(6):
             answertext[f'rand{answer}'] = visual.TextStim(win, height=32, font="Palatino Linotype", color = "black")
             answerbox[f'rand{answer}'] = visual.Rect(win, width = 350, height = 100, lineColor = "black", lineWidth = 3)
         
@@ -240,12 +249,7 @@ if debugging == 0:
                     answertext[answers].text = instructiontexts['idk']
                     answerbox[answers].fillColor = "black"
                     answerbox[answers].opacity = .2
-                    answertext[answers].pos = (0, 60)
-                elif answers == 'rand6':
-                    answertext[answers].text = instructiontexts['know_face']
-                    answerbox[answers].fillColor = "white"
-                    answerbox[answers].opacity = .1
-                    answertext[answers].pos = (0, -110)
+                    answertext[answers].pos = (0, 0)
                 else:
                     answertext[answers].text = prescreen_trials[prescstim][f'rand{ans_num}_name']
                     answertext[answers].pos = prescreen_trials[prescstim][f'rand{ans_num}_pos']
@@ -278,11 +282,6 @@ if debugging == 0:
                                 correct = 1
                                 foundIm.append(answer_celeb)
                                 Ans = True
-                            elif answers == 'rand6':
-                                answer_celeb = 'familiar face'
-                                correct = 1
-                                foundIm.append(prescreen_trials[prescstim]['im_name'])
-                                Ans = True
                             elif answers == 'rand5':
                                 answer_celeb = 'idk'
                                 correct = 0
@@ -308,7 +307,7 @@ if debugging == 0:
         with open(celeb_save, 'wb') as file:
             file.write(pickle.dumps(final_celeb_list)) # use `pickle.load` to do the reverse
         
-        if len(final_celeb_list) < 10:   
+        if len(final_celeb_list) < maxCeleb:   
             textpage.text  = instructiontexts["oops"]
             textpage.draw()
             win.flip()
@@ -325,7 +324,7 @@ if debugging == 0:
         #load celeb dict (unpickle it)
         with open(celeb_save, 'rb') as file:
             final_celeb_list = pickle.load(file)
-elif debugging == 1 or debugging == 2:
+elif debugging == 1 or debugging == 2 or debugging == 3:
     celeb_save = f'{data_path}debugging_selec-celeb.pickle'
     with open(celeb_save, 'rb') as file:
             final_celeb_list = pickle.load(file)
@@ -338,6 +337,7 @@ alltrials_pickle = f'{logname}_alltrials-list.pickle'
 
 # only needed for the first session
 if session == 'ses-01':
+    # for debugging: from functions_ctfbackwardmasking import *
     
     # get names of all images folders. Naming should be:
     # stimulus: BG01_ID01_IM01.bmp / mask: BG01_ID01_IM01_LSF.bmp / background: BG01.bmp
@@ -345,21 +345,18 @@ if session == 'ses-01':
     stim = Stimuli(f'{stim_path}main/')
     
     # returns list with unique dr of IDs or IMs self.unique_nr
-    
-    stim.getuniquenr('IM')
-    stim.getuniquenr('BG')
+    stim.getuniquenr('IM', f'{stim_path}main/')
+    stim.getuniquenr('BG', back_path)
     
     
     # returns self.same_list / self.diff_list / self.maxnr_trials 
-    stim.list_of_combinations(stim.unique_nr['BG'], final_celeb_list)
-    stim.getuniquenr('ID')
-    
+    stim.list_of_combinations(final_celeb_list)
     
     # creates self.sf, self.dur, self.match, self.stair and an empty self.trial_list
-    alltrials = Ordertrials(stim,spatialfrequencies,durations,matching,staircases)
+    alltrials = Ordertrials(stim,maxCeleb,spatialfrequencies,durations,matching,staircases)
     
     # Creating and shuffle the trials with balanced number of conditions
-    alltrials.trial_list(framelength)
+    alltrials.trial_list(framelength) 
     alltrials.shuffle_trials()
     
     
@@ -372,12 +369,13 @@ if session == 'ses-01':
     
     # creates self.blocks['block-1']['HSF_50']['stair-1'][0] 
     # in this case: 8 blocks, 6 conditions, 2 staircases, 16 trials
+    
     alltrials.make_miniblocks(n_bigblock,miniblock_per_bigblock,trials_per_block,stim.unique_nr['BG']) 
+    # for debugging: aaaa = alltrials.blocks
 
 
-
-# make Psi Staircase for all conditions (x2)
-# making normal staircase instead!
+    # make Psi Staircase for all conditions (x2)
+    # making normal staircase instead!
 
     # nTrials is trials PER staircase
     nTrials = int((trials_per_block/len(alltrials.stair))*n_bigblock)
@@ -388,11 +386,12 @@ if session == 'ses-01':
     nDown = 2 # will result in ~80% acc
     minVal = 1
     maxVal = 100
-    #thresholdPrior=('normal',50,5)############################################## change for visibility
+    #thresholdPrior=('normal',50,5) ##### change for visibility
     #thresholdPrior1=('normal',50,5) #for both staircases. 1 very visible at the beginning
     #thresholdPrior2=('normal',20,5) # second not visible at all... hope this will converge at the end
     
     # initialize a staircase for each condition
+    #creates alltrials.staircases
     alltrials.prepare_staircare(nTrials,signal_start,steps,steptype,nUp,nDown,minVal,maxVal)
                           
     with open(alltrials_pickle, 'wb') as file:
@@ -416,7 +415,7 @@ f = open(data_fname,'a',encoding='UTF8', newline='')
 
 # write header if it is the first session
 
-header_names = list(alltrials.blocks['block-1']['HSF_50']['trials'][0].keys())
+header_names = list(alltrials.blocks['block-1'][0].keys())
 
 writer = csv.DictWriter(f, fieldnames=header_names)
 
@@ -448,13 +447,18 @@ for pracnr,practice_no in enumerate(practice_rounds):
         if page == 1 and practice_no == 'pract-02':
             visibility = [30,50,70]
             pos_list = [(-400,-350), (0,-350), (400, -350)]
-            examplestim = stim_path + 'main/' + alltrials.blocks['block-6']['HSF_50']['trials'][0]['stim1']
+            examplestim = stim_path + 'main/' + alltrials.blocks['block-6'][0]['stim1']
             loaded_image = np.array(Image.open(examplestim))
-            exampleback = back_path + alltrials.blocks['block-6']['HSF_50']['trials'][0]['background']
+            exampleback = back_path + alltrials.blocks['block-6'][0]['background']
             loaded_back = np.array(Image.open(exampleback))
             for idx,signal in enumerate(visibility):
                 image2draw = occlude(loaded_image, loaded_back, signal)
                 image2draw = equalise_im(image2draw,LC)
+                greyback = np.array(Image.open(os.path.join(base_path,'grey/grey.bmp')))
+                greyback = equalise_im(greyback, LC)
+                alphamask = np.array(Image.open(f'{base_path}alphamask.bmp'))
+                alphamask = normalise_im(alphamask) # normalise alphamask
+                image2draw = replace_background(image2draw,greyback,alphamask)
                 prescreen[idx].setOri(180) # need to do this because somehow the images are inverted.....
                 prescreen[idx].setMask('circle')
                 prescreen[idx].setImage(image2draw)
@@ -479,7 +483,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 namepage.pos = (0, 0)
                 namepage.draw()
                 win.flip()
-                if debugging == 1:
+                if debugging == 1 or debugging == 3:
                     core.wait(.5) ###for debugging
                 else:
                     core.wait(5)
@@ -490,7 +494,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
             show_celebs = False
     mouse= event.Mouse(visible = False, win = win)
     
-    if debugging == 0:
+    if debugging == 0 or debugging == 3:
         # practice trialsss
         practice_dur = 200 #500ms for target
         practice_signal = 100
@@ -505,7 +509,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 bitmap['fix'].draw()
                 fix_cross.setAutoDraw(True)
                 
-                nframe['stim1'] = pract_trialinfo['nframes']
+                nframe['isi1'] = pract_trialinfo['nframes']-nframe['stim1']
                 #load stim1, stim2 and mask
                 drawed = loadimage(base_path, pract_trialinfo, pract_trialinfo['contrast'], LC)
             
@@ -619,78 +623,75 @@ else:
     with open(block_order, 'rb') as file:
         blocks_ses = pickle.load(file)
         
-
+################################# random trials / get rid of mini blocks / make big blocks shorter
 # Start experiment
 for bl,block in enumerate(blocks_ses[session]):
-    for condnr,cond in enumerate(alltrials.blocks[block]):
-        condition = alltrials.blocks[block][cond]
-        stairs = alltrials.blocks['block-1'][cond]
-        for idx,trialinfo in enumerate(condition['trials']):
-            fix_cross.setAutoDraw(True)
-            staircase = stairs[f'stair-{trialinfo["staircasenr"]}']
-            
-            nframe['stim1'] = trialinfo['nframes']
-            
-            #while staircase._nextIntensity == None:
-            #    pass
-            trialinfo['contrast'] = staircase._nextIntensity
-            print(f'block {bl}    -    {condnr} {cond}    -    trial {idx}    -    {staircase._nextIntensity}')
-            
-            #load stim1, stim2 and mask
-            drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC)
-
-            #set stim1, stim2 and mask
-            for drawit in bitmap:
-                bitmap[drawit].setMask('circle')
-                bitmap[drawit].setImage(drawed[drawit])
-
-            #### trial windows 
-            for window in bitmap:
-                if window == 'int':
-                    fix_cross.setAutoDraw(False)
-                for nFrames in range(nframe[window]):
-                    bitmap[window].draw()
-                    win.flip()
-                #win.getMovieFrame() ####### for screenshotting a trial
-                #win.saveMovieFrames(f'{save_path}{window}.bmp')
-            timer.reset()
-                                            
-            # Wait until a response
-            if debugging == 1:
-                esc_key = event.getKeys(keyList=['space','escape'])
-                escape_check(esc_key,win,f)
-                keys = ['s']
-            else:
-                keys = event.waitKeys(keyList=['s','l','escape','p'])
-                escape_check(keys,win,f)
-            
-            bitmap['fix'].draw()
-            fix_cross.setAutoDraw(True)
-            win.flip()
-            if keys:
-                trialinfo['rt'] = timer.getTime()
-                # fixation.clearTextures()
-            
-            for drawit in bitmap:
-                bitmap[drawit].clearTextures()
-
-            trialinfo['acc'] = -1
-            if keys:
-                escape_check(keys,win,f)
-                if 's' in keys and (trialinfo['matching'] == 'same'): # is same
-                    trialinfo['acc'] = 1
-                elif 'l' in keys and (trialinfo['matching'] == 'diff'): # is different
-                    trialinfo['acc'] = 1         
-            
-            trialinfo['trialno'] = idx
-            trialinfo['block'] = block
-            trialinfo['session'] = session
-            
-            #update staircase
-            staircase.addData(trialinfo['acc']) ########## Does more than the accuracy and contrast needs to be updated??
-            staircase.intensities.append(trialinfo['contrast'])
-            alltrials.blocks['block-1'][cond][f'stair-{trialinfo["staircasenr"]}'] = staircase
-            writer.writerow(trialinfo)
+    for idx,trialinfo in enumerate(alltrials.blocks[block]):
+        condition =  f"{trialinfo['SF']}_{trialinfo['duration']}"
+        fix_cross.setAutoDraw(True)
+        staircase = alltrials.staircases[condition][f'stair-{trialinfo["staircasenr"]}']
+        nframe['isi1'] = trialinfo['nframes']-nframe['stim1']
+        
+        #while staircase._nextIntensity == None:
+        #    pass
+        trialinfo['contrast'] = staircase._nextIntensity
+        print(f'block {bl}    -    {condition}    -    trial {idx}    -    {staircase._nextIntensity}')
+        
+        #load stim1, stim2 and mask
+        drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC)
+    
+        #set stim1, stim2 and mask
+        for drawit in bitmap:
+            bitmap[drawit].setMask('circle')
+            bitmap[drawit].setImage(drawed[drawit])
+    
+        #### trial windows 
+        for window in bitmap:
+            if window == 'int':
+                fix_cross.setAutoDraw(False)
+            for nFrames in range(nframe[window]):
+                bitmap[window].draw()
+                win.flip()
+            #win.getMovieFrame() ####### for screenshotting a trial
+            #win.saveMovieFrames(f'{save_path}{window}.bmp')
+        timer.reset()
+                                        
+        # Wait until a response
+        if debugging == 1:
+            esc_key = event.getKeys(keyList=['space','escape'])
+            escape_check(esc_key,win,f)
+            keys = ['s']
+        else:
+            keys = event.waitKeys(keyList=['s','l','escape','p'])
+            escape_check(keys,win,f)
+        
+        bitmap['fix'].draw()
+        fix_cross.setAutoDraw(True)
+        win.flip()
+        if keys:
+            trialinfo['rt'] = timer.getTime()
+            # fixation.clearTextures()
+        
+        for drawit in bitmap:
+            bitmap[drawit].clearTextures()
+    
+        trialinfo['acc'] = -1
+        if keys:
+            escape_check(keys,win,f)
+            if 's' in keys and (trialinfo['matching'] == 'same'): # is same
+                trialinfo['acc'] = 1
+            elif 'l' in keys and (trialinfo['matching'] == 'diff'): # is different
+                trialinfo['acc'] = 1         
+        
+        trialinfo['trialno'] = idx
+        trialinfo['block'] = block
+        trialinfo['session'] = session
+        
+        #update staircase
+        staircase.addData(trialinfo['acc']) ########## Does more than the accuracy and contrast needs to be updated??
+        staircase.intensities.append(trialinfo['contrast'])
+        alltrials.staircases[condition][f'stair-{trialinfo["staircasenr"]}'] = staircase
+        writer.writerow(trialinfo)
 
                 
     if bl == 3: # end of session 

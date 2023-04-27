@@ -24,25 +24,27 @@ import numpy.ma as ma
 #%% =============================================================================
 # functions
 
-def num_frames(fix_dur, int_dur, mask_dur, isi_dur, framelength):
+def num_frames(fix_dur, stim_dur, int_dur, mask_dur, isi_dur, framelength):
     nframe = {}
       
     nframe['fix'] = nframes(fix_dur,framelength)
     nframe['int'] = nframes(int_dur,framelength)
-    nframe['stim1'] = 1
+    nframe['stim1'] = nframes(stim_dur,framelength)
+    nframe['isi1'] = 1
     nframe['mask'] = nframes(mask_dur,framelength)
-    nframe['isi'] = nframes(isi_dur,framelength)
+    nframe['isi2'] = nframes(isi_dur,framelength)
     nframe['stim2'] = 1
     return nframe
 
 
 def loadimage(base_path,trialinfo,visibility,LC):
     # loading and occluding image ready for drawing
-    stimuli = {'fix' : 'background',
-               'int' : 'background',               
+    stimuli = {'fix' : 'grey',
+               'int' : 'grey',               
                'stim1' : 'stimuli',
+               'isi1' : 'grey',
                'mask' : 'masks',
-               'isi' : 'background',
+               'isi2' : 'grey',
                'stim2' : 'stimuli'}
     draw = {}
     loaded = {}
@@ -55,22 +57,27 @@ def loadimage(base_path,trialinfo,visibility,LC):
     
     for curr in stimuli:
         stim_path = f'{base_path}{stimuli[curr]}/'
-        if curr == 'fix' or curr == 'int' or curr == 'isi':
-            image2load = trialinfo['background']
+        if curr == 'stim1' or curr == 'stim2':
+            image2load = 'main/' + trialinfo[curr]
         elif curr == 'mask':
             image2load = trialinfo[curr]
         else:
-            image2load = 'main/' + trialinfo[curr]
+            image2load = 'grey.bmp'
         loaded_image = np.array(Image.open(os.path.join(stim_path,image2load)))
         loaded_image = equalise_im(loaded_image, LC)
-        #visualise: Image.fromarray(occluded_image.astype('uint8'))
+        #visualise: Image.fromarray(loaded_image.astype('uint8'))
         draw[curr] = loaded_image
     #if trialinfo['block'] != 'practice':
     #    draw[f'stim1'] = occlude(draw[f'stim1'],draw['int'],visibility)
-    draw[f'stim1'] = occlude(draw[f'stim1'],draw['int'],visibility) ############### can this handle equalised images?
+    # bitmap['stim1'].setImage(draw[f'stim1'])
+    # bitmap['stim1'].draw()
+    # win.flip()
+    backim = np.array(Image.open(os.path.join(base_path,'background',trialinfo['background'])))
+    backim = equalise_im(backim, LC)
+    draw[f'stim1'] = occlude(draw[f'stim1'],backim,visibility) ############### can this handle equalised images?
     for stim in draw:
         draw[stim] = equalise_im(draw[stim],LC)
-        #visualise: Image.fromarray(occluded_image.astype('uint8'))
+        #visualise: Image.fromarray(draw[f'stim1'].astype('uint8'))
         draw[stim] = replace_background(draw[stim],draw['int'],alphamask)    
     return draw
 
@@ -148,8 +155,8 @@ def presceen_trials(base_path,prestim,exp_info):
     # if 4 images are recognized then put the celeberties in a list and take 10 randomly   
     
     # returns list with unique dr of IDs or IMs self.unique_nr
-    prestim.getuniquenr('ID') # prestim.unique_nr
-    prestim.getuniquenr('IM')
+    prestim.getuniquenr('ID',f'{base_path}stimuli/main/') # prestim.unique_nr
+    prestim.getuniquenr('IM', f'{base_path}stimuli/main/')
     
     
     # make list of celeberty id's
@@ -208,7 +215,9 @@ def select_recognised_celebs(base_path,foundIm):
         celeb = [im for im in foundIm if celeb_list[num] in im]
         if len(celeb) == 4:
             FinalList.append(celeb_list[num])
-    # of not all photos are recognised, select them where 3 photos were.
+    
+    # if not all photos are recognised, select them where 3 photos were.
+    ''' We're going to be more strict, so this part is commented out
     if len(FinalList) < 10:
         miss = 10 - len(FinalList)
         for num in celeb_list:
@@ -222,28 +231,34 @@ def select_recognised_celebs(base_path,foundIm):
                 l = random.sample(FinalList3, miss)
                 final_actor_list.append(l[i])            
     else:    
-        final_actor_list = random.sample(FinalList, 10)    
+        final_actor_list = random.sample(FinalList, 10) '''  
+    
+    if len(FinalList) < 9:
+        final_actor_list = FinalList
+        #convert list to dict with keys
+    else:
+        final_actor_list = random.sample(FinalList, 8)
+    
     #convert list to dict with keys
     actor_dict = {}
     for actor in final_actor_list:
         actor_dict[[i for i in celeb_list if celeb_list[i]==actor][0]] = actor
-    
+        
     return actor_dict
 
 
 
 def prepare_practice_trials(practice_no,alltrials,session,practice_dur,signal,framelength):
-    conditions = alltrials.blocks[f'block-{random.randint(1, 8)}']
     practice_trial_list = {}
-    for trial_no,cond in enumerate(conditions):
-        trial = copy.deepcopy(alltrials.blocks[f'block-{random.randint(1, 8)}'][cond]['trials'][random.randint(0, 15)])
+    for trial_no,cond in enumerate(alltrials.conditionlist):
+        trial = copy.deepcopy(alltrials.blocks[f'block-{random.randint(1, 8)}'][random.randint(0, 15)])
         
         if trial_no % 2 == 0:  ## this is just to make sure half of the practice trials
             matchtype = 'diff' ## have 2 same identities and half are different
         else:
             matchtype = 'same'
         while matchtype != trial['matching']:
-            trial = alltrials.blocks[f'block-{random.randint(1, 8)}'][cond]['trials'][random.randint(0, 15)]
+            trial = copy.deepcopy(alltrials.blocks[f'block-{random.randint(1, 8)}'][random.randint(0, 15)])
             
         trial['session'] = session
         trial['block'] = practice_no
@@ -274,24 +289,23 @@ def prepare_practice_trials(practice_no,alltrials,session,practice_dur,signal,fr
 
 class Stimuli:
     # Stimuli() saves self.path and self.stim (list of names)
-    def __init__(self, image_path):
+    def __init__(self,image_path):
         # get names of all images folders
         self.path = image_path
         self.list = os.listdir(os.path.join(image_path))
         self.unique_nr = {}
-        
-    def getuniquenr(self,whichtype): 
+    def getuniquenr(self,whichtype, stim_path): 
         # function makes a list of unique numbers
         # if name of images are ID01_IM01.bmp
         # then 'whichtype' should be either 'ID' or 'IM'
         type_list = []
-        for im in self.list:
+        for im in os.listdir(os.path.join(stim_path)):
             type_list.append(int(im.rsplit(whichtype)[1][0:2]))
         unique_nr = np.unique(np.array(type_list))
         # returns list with unique dr of IDs or IMs self.unique_nr
         self.unique_nr[whichtype] = unique_nr
         
-    def list_of_combinations(self,nrback,actor_dict):
+    def list_of_combinations(self,actor_dict):
         # returns self.same_list / self.diff_list / self.maxnr_trials 
         same_list = {}
         diff_list = {}
@@ -301,24 +315,23 @@ class Stimuli:
         for celebid in actor_id_list:
             self.stim_list.extend([ x for x in self.list if celebid in x ])
         self.list = self.stim_list
-        for background in nrback:
-            same_list_back = []
-            diff_list_back = []
-            for idx,uniqueid in enumerate(actor_dict.keys()):
-                nr_unique_images = len(self.unique_nr['IM'])
-                stimuluslist = [s for s in self.stim_list if f'BG0{background}' in s]
-                list_curr_id = stimuluslist[(idx*nr_unique_images):nr_unique_images+(idx*nr_unique_images)]
-                comb_same_list = list(itertools.combinations(list_curr_id, r=2))
-                same_list_back.append(comb_same_list)
-                
-                list_no_curr_id = copy.deepcopy(stimuluslist)
-                del list_no_curr_id[(idx*nr_unique_images):nr_unique_images+(idx*nr_unique_images)] # delete current id from list
-                comb_diff_list = list(itertools.product(list_curr_id,list_no_curr_id))
-                #select as many combinatoins as the same list has..
-                comb_diff_list = random.choices(comb_diff_list,k=len(comb_same_list))
-                diff_list_back.append(comb_diff_list)
-            same_list[f'BG0{background}'] = same_list_back
-            diff_list[f'BG0{background}'] = diff_list_back
+
+        same_list = []
+        diff_list = []
+        for idx,uniqueid in enumerate(actor_dict.keys()):
+            nr_unique_images = len(self.unique_nr['IM'])
+            #stimuluslist = [s for s in stim.stim_list if f'BG0{background}' in s]
+            list_curr_id = self.stim_list[(idx*nr_unique_images):nr_unique_images+(idx*nr_unique_images)]
+            comb_same_list = list(itertools.combinations(list_curr_id, r=2))
+            same_list.append(comb_same_list)
+            
+            list_no_curr_id = copy.deepcopy(self.stim_list)
+            del list_no_curr_id[(idx*nr_unique_images):nr_unique_images+(idx*nr_unique_images)] # delete current id from list
+            comb_diff_list = list(itertools.product(list_curr_id,list_no_curr_id))
+            #select as many combinatoins as the same list has..
+            comb_diff_list = random.choices(comb_diff_list,k=len(comb_same_list))
+            diff_list.append(comb_diff_list)
+
         self.same_list = same_list
         self.diff_list = diff_list
         # same_list[0] = all "same" combinations of the first identity
@@ -331,12 +344,13 @@ class Stimuli:
 
 class Ordertrials(object):
     
-    def __init__(self,stim,spatialfrequencies,durations,matching,staircases):
+    def __init__(self,stim,maxCeleb,spatialfrequencies,durations,matching,staircases):
         self.sf = spatialfrequencies
         self.dur = durations
         self.match = matching
         self.stair = staircases
         self.stim = stim
+        self.maxCeleb = maxCeleb
     # Creating the trials with balanced number of conditions
     def trial_list(self,framelength):
         backgrounds = [f'BG0{str(x)}' for x in list(self.stim.unique_nr['BG'])]
@@ -352,11 +366,12 @@ class Ordertrials(object):
         for SF in self.sf:
             for dur in self.dur:
                 ImFrame = int(int(dur)/framelength)
-                for idx,whichid in enumerate(self.stim.unique_nr['ID']): # loop through ID's
+                for whichid in range(self.maxCeleb): # loop through ID's
                     for trialtype in self.match: # same or different trial                        
                         triallist = matchingcond[trialtype]
-                        for bgnr,backgroundnr in enumerate(triallist):
-                            for cmb,combi_per_id in enumerate(triallist[backgroundnr][idx]): #all possible combinations per ID
+                        for bgnr,backgroundnr in enumerate(backgrounds):
+                            for cmb,combi_per_id in enumerate(triallist[whichid]):
+                                #all possible combinations per ID
                                 for stair in self.stair: #two staircases per condition
                                     trial_name = f'{SF}_{dur}_{trialtype}_{stair}_{backgroundnr}' # trial type name
                                     num1 = round(random.random())
@@ -390,7 +405,6 @@ class Ordertrials(object):
         for cond in self.trial_list.keys(): 
             rnd.shuffle(self.trial_list[f"{cond}"])
           
-            
     def make_miniblocks(self,n_bigblock,miniblock_per_bigblock,trials_per_block,unique_back):
         # to make all the blocks ready
         # big blocks containing smaller blocks (small block = one condition per block)
@@ -401,14 +415,14 @@ class Ordertrials(object):
         self.blocks = {}
         background_numbers = np.repeat(unique_back, int(np.ceil(n_bigblock/np.size(unique_back))))
         np.random.shuffle(background_numbers)
-        mini_blocks = {}
         stair = {}
-        tempblock=[]
         blocklist = {}
         for bblock in range(n_bigblock):
+            mini_blocks = [] ############################################# changing the miniblocks to shuffle big blocksgfdfs
             name = f'block-{bblock+1}'
             backrgoundnr = f'BG0{bblock+1}'
             for idx,cond in enumerate(self.conditionlist):
+                tempblock=[]
                 for stairnr in self.stair:
                     # for every mini block, grab 8 unique trials.. and go on to the next trial
                     for trial in range(int((trials_per_block/len(self.stair))/2)): # 8 (4same/4diff) trials of one condition per block
@@ -417,16 +431,10 @@ class Ordertrials(object):
                             trial2add['mask'] = trial2add["mask"]
                             tempblock.append(trial2add)                   
                 rnd.shuffle(tempblock)
-                stair['trials'] = tempblock
-                tempblock=[]
-                mini_blocks[cond] = copy.deepcopy(stair)
+                mini_blocks.extend(copy.deepcopy(tempblock))
             #shuffeling the mini block order
-            keys = list(mini_blocks.keys())
-            random.shuffle(keys)
-            shuffled_miniblocks = dict()
-            for key in keys:
-                shuffled_miniblocks.update({key: mini_blocks[key]})
-            blocklist[name] = shuffled_miniblocks
+            random.shuffle(mini_blocks)
+            blocklist[name] = mini_blocks
         #shuffeling the big block order
         bkeys = list(blocklist.keys())
         random.shuffle(bkeys)
@@ -435,16 +443,20 @@ class Ordertrials(object):
             shuffled_bigblocks.update({key: blocklist[key]})
         self.blocks = shuffled_bigblocks
 
+
     def prepare_staircare(self,nTrials,signal_start,steps,steptype,nUp,nDown,minVal,maxVal):
-        for cond in self.blocks['block-1']:
+        #preallocating for the staircases
+        self.staircases = {}
+        for cond in self.conditionlist:
+            self.staircases[cond] = {}
             #self.blocks['block-1'][cond][f'stair-1'] = makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior1)
             #self.blocks['block-1'][cond][f'stair-2'] = makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior2)
-            self.blocks['block-1'][cond][f'stair-1'] = data.StairHandler(startVal = signal_start,
+            self.staircases[cond]['stair-1'] = data.StairHandler(startVal = signal_start,
                                                                          stepType = steptype, stepSizes=steps,
                                                                          nUp=nUp, nDown=nDown,  # will home in on the 80% threshold
                                                                          nTrials=nTrials,
                                                                          minVal=minVal,maxVal=maxVal)
-            self.blocks['block-1'][cond][f'stair-2'] = data.StairHandler(startVal = signal_start,
+            self.staircases[cond]['stair-2'] = data.StairHandler(startVal = signal_start,
                                                                          stepType = steptype, stepSizes=steps,
                                                                          nUp=nUp, nDown=nDown,  # will home in on the 80% threshold
                                                                          nTrials=nTrials,

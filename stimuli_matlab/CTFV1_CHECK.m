@@ -4,14 +4,11 @@
 
 close all; clear; clc
 
-basefolder = '/home/jschuurmans/Documents/02_recurrentSF_3T/recurrentSF_3T_CodeRepo/stimuli_matlab/';
-outfolder_stim = [basefolder 'stimuli/'];
-outfolder_back = [basefolder 'background/'];
-load([basefolder 'CTFV1_PROC.mat'])
-addpath(basefolder)
-
+basefolder = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/stimuli_matlab/';
+outfolder_stim = [basefolder 'finalstim/stimuli/'];
+outfolder_back = [basefolder 'finalstim/background/'];
 load([basefolder 'CTFV1_BLEND.mat'])
-
+addpath(basefolder)
 %inact faces:       imshow(imset.eq_stim{2})
 %negated faces:     imshow(imset.neg_stim{1})
 %scrambled faces:   imshow(imset.scr_stim{1})
@@ -37,23 +34,19 @@ clear vecdataStimLback vecdataStimLface vecdataStimCback vecdataStimCface
 
 %thestim = 1; %stim, maskLSF, maskHSF
 for thestim = 1:length(stimuli)
-    for thetype = 1:length(Cond1levels) % intact, negated and scrambled
-        for theback = 1:backgrounds %for all scrambled backgrounds
-            dataStimLback(theback,:) = finalstim_backpixLC{theback,thetype,thestim}(:,1);
-            dataStimCback(theback,:) = finalstim_backpixLC{theback,thetype,thestim}(:,2);
-            dataStimLface(theback,:) = finalstim_facepixLC{theback,thetype,thestim}(:,1);
-            dataStimCface(theback,:) = finalstim_facepixLC{theback,thetype,thestim}(:,2);
-        end
     
-        vecdataStimLback(thetype,:) = reshape(dataStimLback,numel(dataStimLback),1);
-        vecdataStimLface(thetype,:) = reshape(dataStimLface,numel(dataStimLface),1);
-        vecdataStimCback(thetype,:) = reshape(dataStimCback,numel(dataStimCback),1);
-        vecdataStimCface(thetype,:) = reshape(dataStimCface,numel(dataStimCface),1);
+    for theback = 1:backgrounds %for all scrambled backgrounds
+        dataStimLback(theback,:) = finalstim_backpixLC{theback,thestim}(:,1);
+        dataStimCback(theback,:) = finalstim_backpixLC{theback,thestim}(:,2);
+        dataStimLface(theback,:) = finalstim_facepixLC{theback,thestim}(:,1);
+        dataStimCface(theback,:) = finalstim_facepixLC{theback,thestim}(:,2);
     end
-    StimLback(thestim,:,:) = vecdataStimLback;
-    StimLface(thestim,:,:) = vecdataStimLface;
-    StimCback(thestim,:,:) = vecdataStimCback;
-    vStimCface(thestim,:,:) = vecdataStimCface;
+
+   
+    StimLback(thestim,:) = reshape(dataStimLback,numel(dataStimLback),1);
+    StimLface(thestim,:) = reshape(dataStimLface,numel(dataStimLface),1);
+    StimCback(thestim,:) = reshape(dataStimCback,numel(dataStimCback),1);
+    vStimCface(thestim,:) = reshape(dataStimCface,numel(dataStimCface),1);
 end
 
 

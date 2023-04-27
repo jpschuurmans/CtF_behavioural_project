@@ -5,7 +5,7 @@ basefolder = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/stimuli_matla
 addpath(basefolder); addpath(genpath([basefolder  'functions']));
 
 LC = [0.45 0.1]; % desired luminance and contrast
-desired_size = [500 500]; %has to be square
+desired_size = [550 550]; %has to be square
 
 imagefolder = [basefolder 'celebs_all/'] ;
 nim = dir([imagefolder '*.bmp']);

@@ -44,18 +44,19 @@ def makePsi(nTrials,signal_start,signal_end,steps,thresholdPrior): # start_thres
 
 
 def equalise_im(loaded_image, LC):
-    #normalises a images loaded as a NP array 
-    equalised = normalise_im(loaded_image)
-    
-    #loaded_image = (loaded_image*LC[1]) + LC[0]   # desired luminance and contrast
-    #but image needs to be equalised between [min -1, max +1]
-    #loaded_image = 2.*(loaded_image - np.min(loaded_image)) / np.ptp(loaded_image)-1 # equalise image
-    loaded_image = (equalised - np.min(equalised)) / np.ptp(equalised)-.5 # equalise image
+    if np.ptp(loaded_image) == 0:
+        loaded_image = (loaded_image - np.min(loaded_image))
+    else:
+        #normalises a images loaded as a NP array 
+        equalised = normalise_im(loaded_image)
+        #loaded_image = (loaded_image*LC[1]) + LC[0]   # desired luminance and contrast
+        #but image needs to be equalised between [min -1, max +1]
+        #loaded_image = 2.*(loaded_image - np.min(loaded_image)) / np.ptp(loaded_image)-1 # equalise image
+        loaded_image = (equalised - np.min(equalised)) / np.ptp(equalised)-.5 # equalise image
     return loaded_image
 
 def normalise_im(loaded_image):
     normalised = (loaded_image - np.min(loaded_image)) / np.ptp(loaded_image)
-    
     return normalised
 
 
