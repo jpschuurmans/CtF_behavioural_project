@@ -144,7 +144,9 @@ nframe = num_frames(fix_dur,stim_dur,int_dur,mask_dur,isi_dur,framelength)
 win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = 'grey', units ='pix', fullscr = True)
 
 # prepare bitmaps for presenting images
-stimsize = [330,330] 
+# VA in 3T exp was 4.37° x 3.18°
+stimsize = [330,330] # 4.62° x 3.71°
+#stimsize = [400,400] # 5.6° x 4.5° 
 
 bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'isi1' : [], 'mask1' : [], 'mask2' : [], 'mask3' : [], 'mask4' : [], 'isi2' : [], 'stim2' : []}
 
@@ -162,7 +164,7 @@ for screennr in range(4):
 # draw fixation cross
 fix_cross = visual.ShapeStim(win, 
     vertices=((0, -20), (0, 20), (0,0), (-20,0), (20, 0)),
-    lineWidth=2.5,
+    lineWidth=2,
     closeShape=False,
     lineColor="black"
     )
@@ -380,7 +382,7 @@ if session == 'ses-01':
     # making normal staircase instead!
 
     # nTrials is trials PER staircase
-    nTrials = int((trials_per_block/len(alltrials.stair))*n_bigblock)
+    nTrials = int(((trials_per_block/len(alltrials.stair))*n_bigblock)-10)
     signal_start = 75 # signal of blending (e.g. signal = 30, alpha = 70)
     steps = [0.5] ##### could also be 0.5 (?) play around
     steptype = 'db' ### could be 'lin' or 'log'
@@ -636,7 +638,10 @@ for block in enumerate(blocks_ses[session]):
         
         #while staircase._nextIntensity == None:
         #    pass
-        trialinfo['contrast'] = staircase._nextIntensity
+        if len(staircase.intensities) % 9 == 0:
+            trialinfo['contrast'] = staircase._nextIntensity + 10
+        else:
+            trialinfo['contrast'] = staircase._nextIntensity
         print(f'block {blocknr}    -    {trialinfo["condition"]}    -    trial {idx}    -    {staircase._nextIntensity}')
         
         #load stim1, stim2 and mask
@@ -695,7 +700,8 @@ for block in enumerate(blocks_ses[session]):
         #update staircase
         staircase.addData(trialinfo['acc']) ########## Does more than the accuracy and contrast needs to be updated??
         staircase.intensities.append(trialinfo['contrast'])
-        alltrials.staircases[trialinfo['condition']][f'stair-{trialinfo["staircasenr"]}'] = staircase
+        if len(staircase.intensities) % 9 != 0:
+            alltrials.staircases[trialinfo['condition']][f'stair-{trialinfo["staircasenr"]}'] = staircase
         writer.writerow(trialinfo)
 
     
