@@ -11,7 +11,7 @@
 "pract2_inst2" : "The faces will also be presented at different durations.\nSometimes very quickly and other times a bit longer.\n\nEven if the task seems very difficult, try to answer as accurately and quickly as possible.\n\nPress the 'space' key to continue.",
 "pract2_inst3" : "Let's practice this.\n\nPlace your index fingers on the 'S' and 'L' keys.\n\nPress:\n\n'S' for same identity\n\n'L' for different identity\n\nPress the 'space' key to start the practice trials.",
 "main_inst1" : "Congratulations, you have passed the training.\nNow you will move on to the experiment.\n\nThe task is the same as during the training.\n\nTry to answer as accurately and quickly as possible.\n\nPress the 'space' key to continue.",
-"main_inst2" : "The experiment is divided into blocks of about 5 minutes each,\nthey are separated by 20 second breaks (you can always take more time).\n\nYou will have to press the 'space' key to continue.\n\nFeel free to take the time you need, rest your eyes...",
+"main_inst2" : "The experiment is divided into 16 blocks of about 4 minutes each,\nthey are separated by 20 second breaks (you can always take more time).\n\nYou will have to press the 'space' key to continue.\n\nFeel free to take the time you need, rest your eyes...",
 "main_inst3" : "As a reminder, press\n\nthe ‘S’ key for the same identity\n\nthe ‘L’ key for a different celebrity\n\nTo begin the experiment, press the ‘space’ key.",
 "oops" : "Not enough celebrities recognised..\n\nPlease contact the experimenter",
 "oops1_pract" : "You were only {total_acc}% correct..\n\nPlease try again!\n\n\nPress the 'space' key to continue.",

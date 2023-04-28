@@ -142,7 +142,7 @@ nframe = num_frames(fix_dur,stim_dur,int_dur,mask_dur,isi_dur,framelength)
 win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = 'grey', units ='pix', fullscr = True)
 
 # prepare bitmaps for presenting images
-stimsize = [450,450] ################################### stimsize needs to change
+stimsize = [330,330] 
 
 bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'isi1' : [], 'mask' : [], 'isi2' : [], 'stim2' : []}
 
@@ -159,7 +159,7 @@ for screennr in range(4):
 
 # draw fixation cross
 fix_cross = visual.ShapeStim(win, 
-    vertices=((0, -25), (0, 25), (0,0), (-25,0), (25, 0)),
+    vertices=((0, -20), (0, 20), (0,0), (-20,0), (20, 0)),
     lineWidth=2.5,
     closeShape=False,
     lineColor="black"
@@ -623,10 +623,11 @@ else:
     with open(block_order, 'rb') as file:
         blocks_ses = pickle.load(file)
         
-################################# random trials / get rid of mini blocks / make big blocks shorter
+
+blocknr = 0 ## there will be 16 blocks ## ugly coding because this changed later
 # Start experiment
-for bl,block in enumerate(blocks_ses[session]):
-    for idx,trialinfo in enumerate(alltrials.blocks[block]):
+for block in enumerate(blocks_ses[session]):
+    for idx,trialinfo in enumerate(alltrials.blocks[block[1]]):
         condition =  f"{trialinfo['SF']}_{trialinfo['duration']}"
         fix_cross.setAutoDraw(True)
         staircase = alltrials.staircases[condition][f'stair-{trialinfo["staircasenr"]}']
@@ -635,7 +636,7 @@ for bl,block in enumerate(blocks_ses[session]):
         #while staircase._nextIntensity == None:
         #    pass
         trialinfo['contrast'] = staircase._nextIntensity
-        print(f'block {bl}    -    {condition}    -    trial {idx}    -    {staircase._nextIntensity}')
+        print(f'block {blocknr}    -    {condition}    -    trial {idx}    -    {staircase._nextIntensity}')
         
         #load stim1, stim2 and mask
         drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC)
@@ -660,7 +661,10 @@ for bl,block in enumerate(blocks_ses[session]):
         if debugging == 1:
             esc_key = event.getKeys(keyList=['space','escape'])
             escape_check(esc_key,win,f)
-            keys = ['s']
+            if trialinfo['matching'] == 'same': # is same
+                keys = ['s']
+            elif trialinfo['matching'] == 'diff': # is different
+                keys = ['l']
         else:
             keys = event.waitKeys(keyList=['s','l','escape','p'])
             escape_check(keys,win,f)
@@ -684,7 +688,7 @@ for bl,block in enumerate(blocks_ses[session]):
                 trialinfo['acc'] = 1         
         
         trialinfo['trialno'] = idx
-        trialinfo['block'] = block
+        trialinfo['block'] = block[1]
         trialinfo['session'] = session
         
         #update staircase
@@ -693,8 +697,11 @@ for bl,block in enumerate(blocks_ses[session]):
         alltrials.staircases[condition][f'stair-{trialinfo["staircasenr"]}'] = staircase
         writer.writerow(trialinfo)
 
-                
-    if bl == 3: # end of session 
+    
+        if idx == 99:
+            block_break(win, mon, scrsize, screennr, f, int(blocknr+1),16,language,debugging)
+            blocknr += 1            
+    if blocknr == 8: # end of session 
         fix_cross.setAutoDraw(False)    
         instructions = textpage
         instructions.text = instructiontexts[f"end_{session}"]
@@ -703,8 +710,8 @@ for bl,block in enumerate(blocks_ses[session]):
         keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
         escape_check(keys,win,f)
     else: # block break            
-        block_break(win, mon, scrsize, screennr, f, int(bl+1),len(blocks_ses[session]),language,debugging)
-        
+        block_break(win, mon, scrsize, screennr, f, int(blocknr+1),16,language,debugging)
+        blocknr += 1
 with open(alltrials_pickle, 'wb') as file:
     pickle.dump(alltrials, file)
     
