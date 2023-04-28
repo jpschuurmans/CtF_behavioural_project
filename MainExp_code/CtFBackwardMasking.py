@@ -131,7 +131,9 @@ info_file.close()
 fix_dur = 500 # fixation before trial input in ms
 int_dur = 500 # time between fixation and trial
 stim_dur = 40 # duration of stimulus
-mask_dur = 166 # duration mask
+tot_mask_dur = 166 # duration mask
+nrmasks = 4
+mask_dur = tot_mask_dur/nrmasks
 isi_dur = 300 # duration between mask and stim2
 
 nframe = num_frames(fix_dur,stim_dur,int_dur,mask_dur,isi_dur,framelength)
@@ -144,7 +146,7 @@ win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = 'gre
 # prepare bitmaps for presenting images
 stimsize = [330,330] 
 
-bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'isi1' : [], 'mask' : [], 'isi2' : [], 'stim2' : []}
+bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'isi1' : [], 'mask1' : [], 'mask2' : [], 'mask3' : [], 'mask4' : [], 'isi2' : [], 'stim2' : []}
 
 for bit in bitmap:
     bitmap[bit] = visual.ImageStim(win, size=stimsize, mask='circle',interpolate=True)
@@ -628,15 +630,14 @@ blocknr = 0 ## there will be 16 blocks ## ugly coding because this changed later
 # Start experiment
 for block in enumerate(blocks_ses[session]):
     for idx,trialinfo in enumerate(alltrials.blocks[block[1]]):
-        condition =  f"{trialinfo['SF']}_{trialinfo['duration']}"
         fix_cross.setAutoDraw(True)
-        staircase = alltrials.staircases[condition][f'stair-{trialinfo["staircasenr"]}']
+        staircase = alltrials.staircases[trialinfo['condition']][f'stair-{trialinfo["staircasenr"]}']
         nframe['isi1'] = trialinfo['nframes']-nframe['stim1']
         
         #while staircase._nextIntensity == None:
         #    pass
         trialinfo['contrast'] = staircase._nextIntensity
-        print(f'block {blocknr}    -    {condition}    -    trial {idx}    -    {staircase._nextIntensity}')
+        print(f'block {blocknr}    -    {trialinfo["condition"]}    -    trial {idx}    -    {staircase._nextIntensity}')
         
         #load stim1, stim2 and mask
         drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC)
@@ -694,7 +695,7 @@ for block in enumerate(blocks_ses[session]):
         #update staircase
         staircase.addData(trialinfo['acc']) ########## Does more than the accuracy and contrast needs to be updated??
         staircase.intensities.append(trialinfo['contrast'])
-        alltrials.staircases[condition][f'stair-{trialinfo["staircasenr"]}'] = staircase
+        alltrials.staircases[trialinfo['condition']][f'stair-{trialinfo["staircasenr"]}'] = staircase
         writer.writerow(trialinfo)
 
     
