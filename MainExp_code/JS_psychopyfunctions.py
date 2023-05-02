@@ -52,7 +52,7 @@ def equalise_im(loaded_image, LC):
         #loaded_image = (loaded_image*LC[1]) + LC[0]   # desired luminance and contrast
         #but image needs to be equalised between [min -1, max +1]
         #loaded_image = 2.*(loaded_image - np.min(loaded_image)) / np.ptp(loaded_image)-1 # equalise image
-        loaded_image = (equalised - np.min(equalised)) / np.ptp(equalised)-.5 # equalise image
+        loaded_image = (equalised - np.min(equalised)) / np.ptp(equalised)-.65 # equalise image
     return loaded_image
 
 def normalise_im(loaded_image):

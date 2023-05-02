@@ -141,7 +141,7 @@ nframe = num_frames(fix_dur,stim_dur,int_dur,mask_dur,isi_dur,framelength)
 #%% ===========================================================================
 # Prepare/open window
 
-win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = '#7F7F7F', units ='pix', fullscr = True)
+win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = [0,0,0], units ='pix', fullscr = True)
 
 # prepare bitmaps for presenting images
 # VA in 3T exp was 4.37° x 3.18°
@@ -488,7 +488,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 namepage.pos = (0, 0)
                 namepage.draw()
                 win.flip()
-                if debugging == 1 or debugging == 3:
+                if debugging != 0:
                     core.wait(.5) ###for debugging
                 else:
                     core.wait(5)
