@@ -104,7 +104,7 @@ def replace_background(equalised_image, background_image, alphamask):
 
 def block_break(win,mon, scrsize, screennr, f, block_no, maxblock, language,debugging):
     textwin = win
-    textwin.color = (-.4,-.4,-.4)
+    #textwin.color = '#7F7F7F'
     
     
     if debugging == 1 or debugging ==2:
@@ -148,7 +148,7 @@ def block_break(win,mon, scrsize, screennr, f, block_no, maxblock, language,debu
     if debugging == 0 or debugging == 2:
         keys = event.waitKeys(keyList=['s','l','escape','space'])
         escape_check(keys,win,f)
-    win.color = 'gray'        
+    #win.color = 'gray'        
     win.flip(clearBuffer=True)
     del blocktext, timertext
     core.wait(2)

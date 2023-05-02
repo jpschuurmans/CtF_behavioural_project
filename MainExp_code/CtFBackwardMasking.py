@@ -14,16 +14,16 @@ Psychophysical coarse-to-fine backward masking.
 #%% ===========================================================================
 # paths
 
-#base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/'
+base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/MainExp_code/'
 # leave the next line, but comment it out, will make it easier for me to debug/edit the code
-base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
+#base_path = 'C:/Users/Adminuser/Documents/03_SFmasking/Experiment/MainExp_code/'
 
 stim_path = f'{base_path}stimuli/'
 mask_path = f'{base_path}masks/'
 back_path = f'{base_path}background/'
 data_path = f'{base_path}data/'
 asfx='.bmp'
-#save_path = f'{base_path}saved_images/' ####### for screenshotting a trial
+save_path = f'{base_path}saved_images/' ####### for screenshotting a trial
 
 #%% ===========================================================================
 # imports
@@ -70,13 +70,13 @@ exp_info = {
         '2. session' : ('ses-01','ses-02'),
         '3. gender' : ('female','male'),
         '4. age' : '',
-        '5. screenwidth(cm)' : '59',
+        '5. screenwidth(cm)' : '49',
         '6. screenwidth(pix)' : '1920',
         '7. screenhight(pix)' : '1200', 
-        '8. refreshrate(hz)' : ('60','120'), #ViewPixx - Change this (120) #################################
+        '8. refreshrate(hz)' : ('120','60'), #ViewPixx - Change this (120) #################################
         '9. screendistance' : '57',
-        'Prefered language' : ('en','fr'), #################################
-        'Monitor' : ('Dell','Vpixx040821'), #################################
+        'Prefered language' : ('fr','en'), #################################
+        'Monitor' : ('VPixx020523','Dell'), #################################
         'debugging' : ('0','1','2','3')
         }
 # debugging 1 skips everything / debugging 2 skips practice / debugging 3 skips prescreening
@@ -141,12 +141,13 @@ nframe = num_frames(fix_dur,stim_dur,int_dur,mask_dur,isi_dur,framelength)
 #%% ===========================================================================
 # Prepare/open window
 
-win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = 'grey', units ='pix', fullscr = True)
+win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = '#7F7F7F', units ='pix', fullscr = True)
 
 # prepare bitmaps for presenting images
 # VA in 3T exp was 4.37° x 3.18°
-stimsize = [330,330] # 4.62° x 3.71°
-#stimsize = [400,400] # 5.6° x 4.5° 
+#stimsize = [330,330] # 4.62° x 3.71°
+stimsize = [440,440] # 5.12° x 4.08° 
+
 
 bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'isi1' : [], 'mask1' : [], 'mask2' : [], 'mask3' : [], 'mask4' : [], 'isi2' : [], 'stim2' : []}
 

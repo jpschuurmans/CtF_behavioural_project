@@ -1,6 +1,7 @@
 /MainExp_code/__pycache__
-/MainExp_code/data/*
 /MainExp_code/stimuli/*
+/MainExp_code/data*
+/MainExp_code/saved_images
 /MainExp_code/stimuli/prescreening/*
 /MainExp_code/background/*.bmp
 /MainExp_code/masks/*.bmp
