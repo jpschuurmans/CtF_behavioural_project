@@ -448,16 +448,14 @@ class Ordertrials(object):
         self.blocks = {}
         background_numbers = np.repeat(unique_back, int(np.ceil(n_bigblock/np.size(unique_back))))
         np.random.shuffle(background_numbers)
-        mini_blocks = {}
         stair = {}
-        tempblock=[]
         blocklist = {}
         for bblock in range(n_bigblock):
-            #mini_blocks = [] ############################################# changing the miniblocks to shuffle big blocksgfdfs
+            mini_blocks = [] ############################################# changing the miniblocks to shuffle big blocksgfdfs
             name = f'block-{bblock+1}'
             backrgoundnr = f'BG0{bblock+1}'
             for idx,cond in enumerate(self.conditionlist):
-                #tempblock=[]
+                tempblock=[]
                 for stairnr in self.stair:
                     # for every mini block, grab 8 unique trials.. and go on to the next trial
                     for trial in range(int((trials_per_block/len(self.stair))/2)): # 8 (4same/4diff) trials of one condition per block
@@ -466,19 +464,10 @@ class Ordertrials(object):
                             #trial2add['mask'] = trial2add["mask"]
                             tempblock.append(trial2add)                   
                 rnd.shuffle(tempblock)
-                stair['trials'] = tempblock
-                tempblock=[]
-                mini_blocks[cond] = copy.deepcopy(stair)               
-                #mini_blocks.extend(copy.deepcopy(tempblock))
+                mini_blocks.extend(copy.deepcopy(tempblock))
             #shuffeling the mini block order
-            #random.shuffle(mini_blocks)
-            #blocklist[name] = mini_blocks
-            keys = list(mini_blocks.keys())
-            random.shuffle(keys)
-            shuffled_miniblocks = dict()
-            for key in keys:
-                shuffled_miniblocks.update({key: mini_blocks[key]})
-            blocklist[name] = shuffled_miniblocks            
+            random.shuffle(mini_blocks)
+            blocklist[name] = mini_blocks
         #shuffeling the big block order
         bkeys = list(blocklist.keys())
         random.shuffle(bkeys)

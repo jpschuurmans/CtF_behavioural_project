@@ -37,7 +37,7 @@ from PIL import Image
 import csv
 import _pickle as pickle
 #from itertools import islice
-from functions_ctfbackwardmasking import *
+from functions_ctfbackwardmasking_randomn import *
 from JS_psychopyfunctions import *
 
 
@@ -420,7 +420,7 @@ f = open(data_fname,'a',encoding='UTF8', newline='')
 
 # write header if it is the first session
 
-header_names = list(alltrials.blocks['block-1']['control']['trials'][0].keys())
+header_names = list(alltrials.blocks['block-1'][0].keys())
 
 writer = csv.DictWriter(f, fieldnames=header_names)
 
@@ -452,9 +452,9 @@ for pracnr,practice_no in enumerate(practice_rounds):
         if page == 1 and practice_no == 'pract-02':
             visibility = [30,50,70]
             pos_list = [(-400,-350), (0,-350), (400, -350)]
-            examplestim = stim_path + 'main/' + alltrials.blocks['block-6']['control']['trials'][0]['stim1'] #################
+            examplestim = stim_path + 'main/' + alltrials.blocks['block-6'][0]['stim1']
             loaded_image = np.array(Image.open(examplestim))
-            exampleback = back_path + alltrials.blocks['block-6']['control']['trials'][0]['background']
+            exampleback = back_path + alltrials.blocks['block-6'][0]['background']
             loaded_back = np.array(Image.open(exampleback))
             for idx,signal in enumerate(visibility):
                 image2draw = occlude(loaded_image, loaded_back, signal)
@@ -631,90 +631,89 @@ else:
 
 blocknr = 0 ## there will be 16 blocks ## ugly coding because this changed later
 # Start experiment
-for bl,block in enumerate(blocks_ses[session]):
-    condnr = 0 # cound conditions for block breaks
-    for condnr,cond in enumerate(alltrials.blocks[block]):
-        condition = alltrials.blocks[block][cond]
-        for idx,trialinfo in enumerate(condition['trials']):
-            fix_cross.setAutoDraw(True)
-            staircase = alltrials.staircases[trialinfo['condition']][f'stair-{trialinfo["staircasenr"]}']
-            nframe['isi1'] = trialinfo['nframes']-nframe['stim1']
-            
-            #while staircase._nextIntensity == None:
-            #    pass
-            if len(staircase.intensities) % 5 == 0 and len(staircase.intensities) != 0:
-                if condnr > round(((len(spatialfrequencies) * len(durations)) + 1) /2):
-                    trialinfo['contrast'] = staircase._nextIntensity + 10
-                    print('jitter: SNR plus 10 ')
-                else:
-                    trialinfo['contrast'] = staircase._nextIntensity - 10
-                    print('jitter: SNR minus 10 ')
+for block in enumerate(blocks_ses[session]):
+    for idx,trialinfo in enumerate(alltrials.blocks[block[1]]):
+        fix_cross.setAutoDraw(True)
+        staircase = alltrials.staircases[trialinfo['condition']][f'stair-{trialinfo["staircasenr"]}']
+        nframe['isi1'] = trialinfo['nframes']-nframe['stim1']
+        
+        #while staircase._nextIntensity == None:
+        #    pass
+        if len(staircase.intensities) % 9 == 0 and len(staircase.intensities) != 0:
+            if len(staircase.intensities) % 18 == 0:
+                trialinfo['contrast'] = staircase._nextIntensity + 10
+                print('jitter: SNR plus 10 ')
             else:
-                trialinfo['contrast'] = staircase._nextIntensity
-            print(f'block {blocknr}    -    {trialinfo["condition"]}    -    trial {idx}    -    {trialinfo["contrast"]}')
-            
-            #load stim1, stim2 and mask
-            drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC)
+                trialinfo['contrast'] = staircase._nextIntensity - 10
+                print('jitter: SNR minus 10 ')
+        else:
+            trialinfo['contrast'] = staircase._nextIntensity
+        print(f'block {blocknr}    -    {trialinfo["condition"]}    -    trial {idx}    -    {trialinfo["contrast"]}')
         
-            #set stim1, stim2 and mask
-            for drawit in bitmap:
-                bitmap[drawit].setMask('circle')
-                bitmap[drawit].setImage(drawed[drawit])
+        #load stim1, stim2 and mask
+        drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC)
+    
+        #set stim1, stim2 and mask
+        for drawit in bitmap:
+            bitmap[drawit].setMask('circle')
+            bitmap[drawit].setImage(drawed[drawit])
+    
+        #### trial windows 
+        for window in bitmap:
+            if window == 'int':
+                fix_cross.setAutoDraw(False)
+            for nFrames in range(nframe[window]):
+                bitmap[window].draw()
+                win.flip()
+            #win.getMovieFrame() ####### for screenshotting a trial
+            #win.saveMovieFrames(f'{save_path}{window}.bmp')
+        timer.reset()
+                                        
+        # Wait until a response
+        if debugging == 1:
+            esc_key = event.getKeys(keyList=['space','escape'])
+            escape_check(esc_key,win,f)
+            if trialinfo['matching'] == 'same': # is same
+                keys = ['s']
+            elif trialinfo['matching'] == 'diff': # is different
+                keys = ['l']
+        else:
+            keys = event.waitKeys(keyList=['s','l','escape','p'])
+            escape_check(keys,win,f)
         
-            #### trial windows 
-            for window in bitmap:
-                if window == 'int':
-                    fix_cross.setAutoDraw(False)
-                for nFrames in range(nframe[window]):
-                    bitmap[window].draw()
-                    win.flip()
-                #win.getMovieFrame() ####### for screenshotting a trial
-                #win.saveMovieFrames(f'{save_path}{window}.bmp')
-            timer.reset()
-                                            
-            # Wait until a response
-            if debugging == 1:
-                esc_key = event.getKeys(keyList=['space','escape'])
-                escape_check(esc_key,win,f)
-                if trialinfo['matching'] == 'same': # is same
-                    keys = ['s']
-                elif trialinfo['matching'] == 'diff': # is different
-                    keys = ['l']
-            else:
-                keys = event.waitKeys(keyList=['s','l','escape','p'])
-                escape_check(keys,win,f)
-            
-            bitmap['fix'].draw()
-            fix_cross.setAutoDraw(True)
-            win.flip()
-            if keys:
-                trialinfo['rt'] = timer.getTime()
-                # fixation.clearTextures()
-            
-            for drawit in bitmap:
-                bitmap[drawit].clearTextures()
+        bitmap['fix'].draw()
+        fix_cross.setAutoDraw(True)
+        win.flip()
+        if keys:
+            trialinfo['rt'] = timer.getTime()
+            # fixation.clearTextures()
         
-            trialinfo['acc'] = -1
-            if keys:
-                escape_check(keys,win,f)
-                if 's' in keys and (trialinfo['matching'] == 'same'): # is same
-                    trialinfo['acc'] = 1
-                elif 'l' in keys and (trialinfo['matching'] == 'diff'): # is different
-                    trialinfo['acc'] = 1         
-            
-            trialinfo['trialno'] = idx
-            trialinfo['block'] = block
-            trialinfo['session'] = session
-            
-            #update staircase
-            if len(staircase.intensities) % 9 != 0 or len(staircase.intensities) == 0:
-                staircase.addData(trialinfo['acc']) ########## Does more than the accuracy and contrast needs to be updated??
-                staircase.intensities.append(trialinfo['contrast'])
-                alltrials.staircases[trialinfo['condition']][f'stair-{trialinfo["staircasenr"]}'] = staircase
-            writer.writerow(trialinfo)
-        condnr += 1
-        if condnr == round(((len(spatialfrequencies) * len(durations)) + 1) /2):
+        for drawit in bitmap:
+            bitmap[drawit].clearTextures()
+    
+        trialinfo['acc'] = -1
+        if keys:
+            escape_check(keys,win,f)
+            if 's' in keys and (trialinfo['matching'] == 'same'): # is same
+                trialinfo['acc'] = 1
+            elif 'l' in keys and (trialinfo['matching'] == 'diff'): # is different
+                trialinfo['acc'] = 1         
+        
+        trialinfo['trialno'] = idx
+        trialinfo['block'] = block[1]
+        trialinfo['session'] = session
+        
+        #update staircase
+        if len(staircase.intensities) % 9 != 0 or len(staircase.intensities) == 0:
+            staircase.addData(trialinfo['acc']) ########## Does more than the accuracy and contrast needs to be updated??
+            staircase.intensities.append(trialinfo['contrast'])
+            alltrials.staircases[trialinfo['condition']][f'stair-{trialinfo["staircasenr"]}'] = staircase
+        writer.writerow(trialinfo)
+
+    
+        if idx == 99:
             block_break(win, mon, scrsize, screennr, f, int(blocknr+1),16,language,debugging)
+            blocknr += 1            
     if blocknr == 8: # end of session 
         fix_cross.setAutoDraw(False)    
         instructions = textpage
@@ -723,7 +722,7 @@ for bl,block in enumerate(blocks_ses[session]):
         win.flip()
         keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
         escape_check(keys,win,f)
-    else:        
+    else: # block break            
         block_break(win, mon, scrsize, screennr, f, int(blocknr+1),16,language,debugging)
         blocknr += 1
 with open(alltrials_pickle, 'wb') as file:
