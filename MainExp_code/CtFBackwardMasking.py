@@ -620,16 +620,16 @@ if session == 'ses-01':
         else:
             sesnum = 'ses-02'
         blocks_ses[sesnum].append(blockname[0])
-        
+    miniblock = 1 ## there will be 16 blocks ## ugly coding because this changed later
     #pickling this block_order per session (Pickle Rick)
     with open(block_order, 'wb') as file:
         file.write(pickle.dumps(blocks_ses)) # use `pickle.load` to do the reverse
 else:
     with open(block_order, 'rb') as file:
         blocks_ses = pickle.load(file)
+    miniblock = 9 ## there will be 16 blocks ## ugly coding because this changed later
         
 
-blocknr = 0 ## there will be 16 blocks ## ugly coding because this changed later
 # Start experiment
 for bl,block in enumerate(blocks_ses[session]):
     condnr = 0 # cound conditions for block breaks
@@ -642,8 +642,8 @@ for bl,block in enumerate(blocks_ses[session]):
             
             #while staircase._nextIntensity == None:
             #    pass
-            if len(staircase.intensities) % 5 == 0 and len(staircase.intensities) != 0:
-                if condnr > round(((len(spatialfrequencies) * len(durations)) + 1) /2):
+            if idx % 5 == 0 and idx != 0:
+                if idx % 10 == 0:
                     trialinfo['contrast'] = staircase._nextIntensity + 10
                     print('jitter: SNR plus 10 ')
                 else:
@@ -651,7 +651,7 @@ for bl,block in enumerate(blocks_ses[session]):
                     print('jitter: SNR minus 10 ')
             else:
                 trialinfo['contrast'] = staircase._nextIntensity
-            print(f'block {blocknr}    -    {trialinfo["condition"]}    -    trial {idx}    -    {trialinfo["contrast"]}')
+            print(f'block {miniblock}    -    {trialinfo["condition"]}    -    trial {idx}  stair {trialinfo["staircasenr"]}  -    {trialinfo["contrast"]}')
             
             #load stim1, stim2 and mask
             drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC)
@@ -707,15 +707,16 @@ for bl,block in enumerate(blocks_ses[session]):
             trialinfo['session'] = session
             
             #update staircase
-            if len(staircase.intensities) % 9 != 0 or len(staircase.intensities) == 0:
+            if idx % 5 != 0 or idx == 0:
                 staircase.addData(trialinfo['acc']) ########## Does more than the accuracy and contrast needs to be updated??
                 staircase.intensities.append(trialinfo['contrast'])
                 alltrials.staircases[trialinfo['condition']][f'stair-{trialinfo["staircasenr"]}'] = staircase
             writer.writerow(trialinfo)
         condnr += 1
         if condnr == round(((len(spatialfrequencies) * len(durations)) + 1) /2):
-            block_break(win, mon, scrsize, screennr, f, int(blocknr+1),16,language,debugging)
-    if blocknr == 8: # end of session 
+            block_break(win, mon, scrsize, screennr, f, miniblock,16,language,debugging)
+            miniblock += 1
+    if miniblock == 8: # end of session 
         fix_cross.setAutoDraw(False)    
         instructions = textpage
         instructions.text = instructiontexts[f"end_{session}"]
@@ -724,8 +725,8 @@ for bl,block in enumerate(blocks_ses[session]):
         keys = event.waitKeys(keyList=['space','escape'])#core.wait(.1)
         escape_check(keys,win,f)
     else:        
-        block_break(win, mon, scrsize, screennr, f, int(blocknr+1),16,language,debugging)
-        blocknr += 1
+        block_break(win, mon, scrsize, screennr, f, miniblock,16,language,debugging)
+        miniblock += 1
 with open(alltrials_pickle, 'wb') as file:
     pickle.dump(alltrials, file)
     

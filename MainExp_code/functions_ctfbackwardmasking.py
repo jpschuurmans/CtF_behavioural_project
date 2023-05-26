@@ -112,7 +112,7 @@ def block_break(win,mon, scrsize, screennr, f, block_no, maxblock, language,debu
     else:
         timer=20
   
-    
+    #block_no = str(block_no)
     if language == 'en':
         rest_text = f"""Please take a short rest before the next block.\n
         You can press "SPACE" to start again after {timer} seconds\n
