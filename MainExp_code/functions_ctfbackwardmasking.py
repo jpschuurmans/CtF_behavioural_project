@@ -112,7 +112,7 @@ def block_break(win,mon, scrsize, screennr, f, block_no, maxblock, language,debu
     else:
         timer=20
   
-    
+    #block_no = str(block_no)
     if language == 'en':
         rest_text = f"""Please take a short rest before the next block.\n
         You can press "SPACE" to start again after {timer} seconds\n
@@ -256,15 +256,16 @@ def select_recognised_celebs(base_path,foundIm):
 
 def prepare_practice_trials(practice_no,alltrials,session,practice_dur,signal,framelength):
     practice_trial_list = {}
-    for trial_no,cond in enumerate(alltrials.conditionlist):
-        trial = copy.deepcopy(alltrials.blocks[f'block-{random.randint(1, 8)}'][random.randint(0, 15)])
+    conditions = alltrials.blocks[f'block-{random.randint(1, 8)}']
+    for trial_no,cond in enumerate(conditions):
+        trial = copy.deepcopy(alltrials.blocks[f'block-{random.randint(1, 8)}'][cond]['trials'][random.randint(0, 15)])
         
         if trial_no % 2 == 0:  ## this is just to make sure half of the practice trials
             matchtype = 'diff' ## have 2 same identities and half are different
         else:
             matchtype = 'same'
         while matchtype != trial['matching']:
-            trial = copy.deepcopy(alltrials.blocks[f'block-{random.randint(1, 8)}'][random.randint(0, 15)])
+            trial = copy.deepcopy(alltrials.blocks[f'block-{random.randint(1, 8)}'][cond]['trials'][random.randint(0, 15)])
             
         trial['session'] = session
         trial['block'] = practice_no
