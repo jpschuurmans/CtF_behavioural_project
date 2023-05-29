@@ -180,7 +180,7 @@ win.mouseVisible = False
 #%% ===========================================================================
 # only needed for the first session
 instr_pages = range(1,3)
-if session == 'ses-01' and debugging == 0:
+if session == 'ses-01' and debugging == 0 or session == 'ses-01' and debugging == 2: ####### changes made ##############
 # open log file for prescreening
     data_fname = f'{logname}_precreening.csv'
     f = open(data_fname,'a',encoding='UTF8', newline='')
@@ -215,7 +215,7 @@ celeb_save = f'{logname}_selec-celeb.pickle'
 
 # prepare triallist for prescreening
 prestim = Stimuli(f'{stim_path}prescreening/') # prestim.list = all stim (list with all all stim)
-if debugging == 0:
+if debugging == 0 or debugging == 2: ################changes made####################
     # only needed for the first session
     if session == 'ses-01':
         # prepare triallist for prescreening
@@ -329,7 +329,7 @@ if debugging == 0:
         #load celeb dict (unpickle it)
         with open(celeb_save, 'rb') as file:
             final_celeb_list = pickle.load(file)
-elif debugging == 1 or debugging == 2 or debugging == 3:
+elif debugging == 1 or debugging == 3: ############ changes made ##########
     celeb_save = f'{data_path}debugging_selec-celeb.pickle'
     with open(celeb_save, 'rb') as file:
             final_celeb_list = pickle.load(file)
