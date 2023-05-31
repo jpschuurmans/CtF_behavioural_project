@@ -376,10 +376,10 @@ class Ordertrials(object):
                 condname = f'{SF}_{dur}'
                 masking = 1
                 self.makelist(matchingcond, backgrounds, ImFrame, condname, SF, dur, masking)
-        ImFrame = 0
         condname = 'control'
         SF = ''
-        dur = 0
+        dur = 200 ##################changed
+        ImFrame = nframes(dur,framelength) ##################changed
         masking = 0
         self.makelist(matchingcond, backgrounds, ImFrame, condname, SF, dur, masking)
                 
@@ -402,11 +402,13 @@ class Ordertrials(object):
                                 maskname2 = 'grey.bmp'
                                 maskname3 = 'grey.bmp'
                                 maskname4 = 'grey.bmp'
+                                dur = 200 ##################changed
                             else:
                                 maskname1 = f'{combi_per_id[num1][:-5]}1_{SF}.bmp'
                                 maskname2 = f'{combi_per_id[num1][:-5]}2_{SF}.bmp'
                                 maskname3 = f'{combi_per_id[num1][:-5]}3_{SF}.bmp'
                                 maskname4 = f'{combi_per_id[num1][:-5]}4_{SF}.bmp'
+                                dur = 0 ##################changed
                             # trial_list will be a dictionary with 24 keys
                             # the conditions are SF*duration (2*3 = 6 in the example)
                             # this is doubled to have the same/diff conditions for the matching task (2*6 = 12)
