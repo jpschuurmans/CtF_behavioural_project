@@ -24,18 +24,17 @@ import numpy.ma as ma
 #%% =============================================================================
 # functions
 
-def num_frames(fix_dur, stim_dur, int_dur, mask_dur, isi_dur, framelength):
+def num_frames(fix_dur, int_dur, mask_dur, isi_dur, framelength):
     nframe = {}
       
     nframe['fix'] = nframes(fix_dur,framelength)
     nframe['int'] = nframes(int_dur,framelength)
-    nframe['stim1'] = nframes(stim_dur,framelength)
-    nframe['isi1'] = 1
+    nframe['stim1'] = 1
     nframe['mask1'] = nframes(mask_dur,framelength)
     nframe['mask2'] = nframes(mask_dur,framelength)
     nframe['mask3'] = nframes(mask_dur,framelength)
     nframe['mask4'] = nframes(mask_dur,framelength)
-    nframe['isi2'] = nframes(isi_dur,framelength)
+    nframe['isi'] = nframes(isi_dur,framelength)
     nframe['stim2'] = 1
     return nframe
 
@@ -45,12 +44,11 @@ def loadimage(base_path,trialinfo,visibility,LC):
     stimuli = {'fix' : 'grey',
                'int' : 'grey',               
                'stim1' : 'stimuli',
-               'isi1' : 'grey',
                'mask1' : 'masks',
                'mask2' : 'masks',
                'mask3' : 'masks',
                'mask4' : 'masks',
-               'isi2' : 'grey',
+               'isi' : 'grey',
                'stim2' : 'stimuli'}
     draw = {}
     loaded = {}
@@ -378,10 +376,10 @@ class Ordertrials(object):
                 condname = f'{SF}_{dur}'
                 masking = 1
                 self.makelist(matchingcond, backgrounds, ImFrame, condname, SF, dur, masking)
-        ImFrame = 0
         condname = 'control'
         SF = ''
-        dur = 0
+        dur = 200 ##################changed
+        ImFrame = nframes(dur,framelength) ##################changed
         masking = 0
         self.makelist(matchingcond, backgrounds, ImFrame, condname, SF, dur, masking)
                 
@@ -404,11 +402,13 @@ class Ordertrials(object):
                                 maskname2 = 'grey.bmp'
                                 maskname3 = 'grey.bmp'
                                 maskname4 = 'grey.bmp'
+                                dur = 200 ##################changed
                             else:
                                 maskname1 = f'{combi_per_id[num1][:-5]}1_{SF}.bmp'
                                 maskname2 = f'{combi_per_id[num1][:-5]}2_{SF}.bmp'
                                 maskname3 = f'{combi_per_id[num1][:-5]}3_{SF}.bmp'
                                 maskname4 = f'{combi_per_id[num1][:-5]}4_{SF}.bmp'
+                                dur = 0 ##################changed
                             # trial_list will be a dictionary with 24 keys
                             # the conditions are SF*duration (2*3 = 6 in the example)
                             # this is doubled to have the same/diff conditions for the matching task (2*6 = 12)

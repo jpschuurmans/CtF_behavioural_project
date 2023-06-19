@@ -130,13 +130,13 @@ info_file.close()
 
 fix_dur = 500 # fixation before trial input in ms
 int_dur = 500 # time between fixation and trial
-stim_dur = 40 # duration of stimulus
+#stim_dur = 40 # duration of stimulus
 tot_mask_dur = 166 # duration mask
 nrmasks = 4
 mask_dur = tot_mask_dur/nrmasks
 isi_dur = 300 # duration between mask and stim2
 
-nframe = num_frames(fix_dur,stim_dur,int_dur,mask_dur,isi_dur,framelength)
+nframe = num_frames(fix_dur,int_dur,mask_dur,isi_dur,framelength)
 
 #%% ===========================================================================
 # Prepare/open window
@@ -149,7 +149,7 @@ win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = [0,0
 #stimsize = [440,440] # 5.12° x 4.08° 
 stimsize = [550,550] # 6.3° x 5.1°
 
-bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'isi1' : [], 'mask1' : [], 'mask2' : [], 'mask3' : [], 'mask4' : [], 'isi2' : [], 'stim2' : []}
+bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'mask1' : [], 'mask2' : [], 'mask3' : [], 'mask4' : [], 'isi' : [], 'stim2' : []}
 
 for bit in bitmap:
     bitmap[bit] = visual.ImageStim(win, size=stimsize, mask='circle',interpolate=True)
@@ -180,7 +180,7 @@ win.mouseVisible = False
 #%% ===========================================================================
 # only needed for the first session
 instr_pages = range(1,3)
-if session == 'ses-01' and debugging == 0 or session == 'ses-01' and debugging == 2: ####### changes made ##############
+if session == 'ses-01' and debugging == 0:
 # open log file for prescreening
     data_fname = f'{logname}_precreening.csv'
     f = open(data_fname,'a',encoding='UTF8', newline='')
@@ -215,7 +215,7 @@ celeb_save = f'{logname}_selec-celeb.pickle'
 
 # prepare triallist for prescreening
 prestim = Stimuli(f'{stim_path}prescreening/') # prestim.list = all stim (list with all all stim)
-if debugging == 0 or debugging == 2: ################changes made####################
+if debugging == 0:
     # only needed for the first session
     if session == 'ses-01':
         # prepare triallist for prescreening
@@ -329,7 +329,7 @@ if debugging == 0 or debugging == 2: ################changes made###############
         #load celeb dict (unpickle it)
         with open(celeb_save, 'rb') as file:
             final_celeb_list = pickle.load(file)
-elif debugging == 1 or debugging == 3: ############ changes made ##########
+elif debugging == 1 or debugging == 2 or debugging == 3:
     celeb_save = f'{data_path}debugging_selec-celeb.pickle'
     with open(celeb_save, 'rb') as file:
             final_celeb_list = pickle.load(file)
@@ -514,7 +514,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 bitmap['fix'].draw()
                 fix_cross.setAutoDraw(True)
                 
-                nframe['isi1'] = pract_trialinfo['nframes']-nframe['stim1']
+                nframe['stim1'] = pract_trialinfo['nframes']
                 #load stim1, stim2 and mask
                 drawed = loadimage(base_path, pract_trialinfo, pract_trialinfo['contrast'], LC)
             
@@ -638,7 +638,7 @@ for bl,block in enumerate(blocks_ses[session]):
         for idx,trialinfo in enumerate(condition['trials']):
             fix_cross.setAutoDraw(True)
             staircase = alltrials.staircases[trialinfo['condition']][f'stair-{trialinfo["staircasenr"]}']
-            nframe['isi1'] = trialinfo['nframes']-nframe['stim1']
+            nframe['stim1'] = trialinfo['nframes']
             
             #while staircase._nextIntensity == None:
             #    pass
