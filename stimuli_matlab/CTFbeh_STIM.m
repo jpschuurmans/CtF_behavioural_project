@@ -10,7 +10,7 @@ desired_size = [550 550]; %has to be square
 imagefolder = [basefolder 'celebs_all/'] ;
 nim = dir([imagefolder '*.bmp']);
 
-outputmat = 'CTFV1_STIM.mat';
+outputmat = 'CTFbeh_STIM.mat';
 
 %% prepare face images
 %load the images
@@ -153,7 +153,8 @@ opt.whichfilter = 2;
 %$$$$
 opt.order = 3;
 octwidth = 4;
-maxSF=desired_size(1)/2;
+maxSF=500; %%%%%%%%%%%%%%%%%%%%%%%% changed this for ideal SF range
+%maxSF=desired_size(1)/2;
 gapOct = 0;
 
 SF = [1, 2]; % two sf ranges (lsf/haf)

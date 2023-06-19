@@ -10,12 +10,12 @@ outfolder = [basefolder 'finalstim/'];
 outfolder_stim = [basefolder 'finalstim/stimuli/'];
 outfolder_back = [basefolder 'finalstim/background/'];
 outfolder_mask = [basefolder 'finalstim/masks/'];
-load([basefolder 'CTFV1_STIM.mat'])
+load([basefolder 'CTFbeh_STIM.mat'])
 addpath(basefolder)
 
 backgrounds = 12;
 
-outputmat = 'CTFV1_BLEND.mat';
+outputmat = 'CTFbeh_BLEND.mat';
 
 %%%%%%%%%%%% load this blurry mask
 %%%%%%%%%%%% make sure the face is just as big as the stimuli
@@ -65,14 +65,15 @@ for thestim = 1:length(stimuli) %stim, maskLSF, maskHSF
 
 
         signalim = set{theface};
-        % imshow(signalim)
+        %imshow(signalim)
+
+        signalim(facepixindex) = signalim(facepixindex) - mean2(signalim(facepixindex)); %normalize blend stim part 1
+        signalim(facepixindex) = signalim(facepixindex) / std2(signalim(facepixindex)); %normalize blend stim part 2
+        signalim(facepixindex)	= (signalim(facepixindex)*LC(2)) + LC(1); %desired lum and contrast
         
         blendim = greystim.*(MaskAlpha) + signalim.*(1-MaskAlpha);
-        % imshow(blendim)
-
-        %blendim = blendim - mean2(blendim); %normalize blend stim part 1
-        %blendim = blendim / std2(blendim); %normalize blend stim part 2
-        %blendim	= (blendim*LC(2)) + LC(1); %desired lum and contrast
+        %imshow(blendim)
+        
         fprintf('mean: %f - std: %f - face %d for type: %s blendedddd\n',mean2(blendim),std2(blendim),theface,stimulus) % check contr and lum for the background
         imshow(blendim); pause (0.05)
 
