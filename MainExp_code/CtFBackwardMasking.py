@@ -77,11 +77,15 @@ exp_info = {
         '9. screendistance' : '57',
         'Prefered language' : ('fr','en'), #################################
         'Monitor' : ('VPixx020523','Dell'), #################################
-        'debugging' : ('0','1','2','3')
+        'debugging' : ('0','1','2','3') 
         }
 # debugging 1 skips everything / debugging 2 skips practice / debugging 3 skips prescreening
 dlg = gui.DlgFromDict(dictionary=exp_info, title=exp_name)
     
+# Debugging
+# 1: skips pretest / both practices / main experiment automatic responses
+# 2: skips pretest / both practices / you can do main experiment
+# 3: skips pretest / you can do practices / you can do main experiment
 
 # If 'Cancel' is pressed, quit
 if dlg.OK == False:
@@ -141,7 +145,7 @@ nframe = num_frames(fix_dur,int_dur,mask_dur,isi_dur,framelength)
 #%% ===========================================================================
 # Prepare/open window
 
-win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = [0,0,0], units ='pix', fullscr = True)
+win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = [0,0,0], units ='pix', fullscr = False)
 
 # prepare bitmaps for presenting images
 # VA in 3T exp was 4.37° x 3.18°

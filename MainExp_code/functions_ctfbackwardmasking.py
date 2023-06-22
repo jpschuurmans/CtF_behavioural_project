@@ -402,13 +402,13 @@ class Ordertrials(object):
                                 maskname2 = 'grey.bmp'
                                 maskname3 = 'grey.bmp'
                                 maskname4 = 'grey.bmp'
-                                dur = 200 ##################changed
+                                duration = 200 ##################changed
                             else:
                                 maskname1 = f'{combi_per_id[num1][:-5]}1_{SF}.bmp'
                                 maskname2 = f'{combi_per_id[num1][:-5]}2_{SF}.bmp'
                                 maskname3 = f'{combi_per_id[num1][:-5]}3_{SF}.bmp'
                                 maskname4 = f'{combi_per_id[num1][:-5]}4_{SF}.bmp'
-                                dur = 0 ##################changed
+                                duration = dur ##################changed
                             # trial_list will be a dictionary with 24 keys
                             # the conditions are SF*duration (2*3 = 6 in the example)
                             # this is doubled to have the same/diff conditions for the matching task (2*6 = 12)
@@ -424,7 +424,7 @@ class Ordertrials(object):
                                 'mask2' : maskname2,
                                 'mask3' : maskname3,
                                 'mask4' : maskname4,
-                                'duration' : dur,
+                                'duration' : duration,
                                 'condition' : condname,
                                 'nframes' : ImFrame,
                                 'SF' : SF,
