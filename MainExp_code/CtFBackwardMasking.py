@@ -135,7 +135,7 @@ info_file.close()
 fix_dur = 500 # fixation before trial input in ms
 int_dur = 500 # time between fixation and trial
 #stim_dur = 40 # duration of stimulus
-tot_mask_dur = 166 # duration mask
+tot_mask_dur = durations[-1] # duration mask
 nrmasks = 4
 mask_dur = tot_mask_dur/nrmasks
 isi_dur = 300 # duration between mask and stim2
