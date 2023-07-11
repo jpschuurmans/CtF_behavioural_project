@@ -46,7 +46,7 @@ from JS_psychopyfunctions import *
 # different conditions in experiment
 
 spatialfrequencies = ['LSF','HSF']
-durations = ['50','67','87','114','150'] #### change however. 
+durations = ['50','75','100','150','300'] #### change however. 
 #different_conditions = lis87t(itertools.product(spatialfrequencies,durations))
 
 # for the paradigm we need more trial contitions
