@@ -16,7 +16,7 @@ Psychophysical coarse-to-fine backward masking.
 
 base_path = 'C:/Users/user/Desktop/Jolien_Mrittika/CtF_behav/MainExp_code/'
 # leave the next line, but comment it out, will make it easier for me to debug/edit the code
-base_path = 'C:/Users/Adminuser/OneDrive/Documents/03_SFmasking/Experiment/MainExp_code/'
+#base_path = 'C:/Users/Adminuser/OneDrive/Documents/03_SFmasking/Experiment/MainExp_code/'
 
 stim_path = f'{base_path}stimuli/'
 mask_path = f'{base_path}masks/'
@@ -135,8 +135,8 @@ info_file.close()
 fix_dur = 500 # fixation before trial input in ms
 int_dur = 500 # time between fixation and trial
 #stim_dur = 40 # duration of stimulus
-tot_mask_dur = durations[-1] # duration mask
-nrmasks = 4
+tot_mask_dur = int(durations[-1]) # duration mask
+nrmasks = 1
 mask_dur = tot_mask_dur/nrmasks
 isi_dur = 300 # duration between mask and stim2
 
@@ -153,7 +153,7 @@ win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = [0,0
 #stimsize = [440,440] # 5.12° x 4.08° 
 stimsize = [550,550] # 6.3° x 5.1°
 
-bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'mask1' : [], 'mask2' : [], 'mask3' : [], 'mask4' : [], 'isi' : [], 'stim2' : []}
+bitmap = {'fix' : [], 'int' : [], 'stim1' : [], 'mask' : [], 'isi' : [], 'stim2' : []}
 
 for bit in bitmap:
     bitmap[bit] = visual.ImageStim(win, size=stimsize, mask='circle',interpolate=True)
@@ -424,7 +424,7 @@ f = open(data_fname,'a',encoding='UTF8', newline='')
 
 # write header if it is the first session
 
-header_names = list(alltrials.blocks['block-1']['control']['trials'][0].keys())
+header_names = list(alltrials.blocks['block-1']['HSF_50']['trials'][0].keys())
 
 writer = csv.DictWriter(f, fieldnames=header_names)
 
@@ -456,9 +456,9 @@ for pracnr,practice_no in enumerate(practice_rounds):
         if page == 1 and practice_no == 'pract-02':
             visibility = [30,50,70]
             pos_list = [(-400,-350), (0,-350), (400, -350)]
-            examplestim = stim_path + 'main/' + alltrials.blocks['block-6']['control']['trials'][0]['stim1'] #################
+            examplestim = stim_path + 'main/' + alltrials.blocks['block-6']['HSF_50']['trials'][0]['stim1'] #################
             loaded_image = np.array(Image.open(examplestim))
-            exampleback = back_path + alltrials.blocks['block-6']['control']['trials'][0]['background']
+            exampleback = back_path + alltrials.blocks['block-6']['HSF_50']['trials'][0]['background']
             loaded_back = np.array(Image.open(exampleback))
             for idx,signal in enumerate(visibility):
                 image2draw = occlude(loaded_image, loaded_back, signal)

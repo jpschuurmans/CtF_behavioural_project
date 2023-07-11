@@ -30,10 +30,7 @@ def num_frames(fix_dur, int_dur, mask_dur, isi_dur, framelength):
     nframe['fix'] = nframes(fix_dur,framelength)
     nframe['int'] = nframes(int_dur,framelength)
     nframe['stim1'] = 1
-    nframe['mask1'] = nframes(mask_dur,framelength)
-    nframe['mask2'] = nframes(mask_dur,framelength)
-    nframe['mask3'] = nframes(mask_dur,framelength)
-    nframe['mask4'] = nframes(mask_dur,framelength)
+    nframe['mask'] = nframes(mask_dur,framelength)
     nframe['isi'] = nframes(isi_dur,framelength)
     nframe['stim2'] = 1
     return nframe
@@ -44,10 +41,7 @@ def loadimage(base_path,trialinfo,visibility,LC):
     stimuli = {'fix' : 'grey',
                'int' : 'grey',               
                'stim1' : 'stimuli',
-               'mask1' : 'masks',
-               'mask2' : 'masks',
-               'mask3' : 'masks',
-               'mask4' : 'masks',
+               'mask' : 'masks',
                'isi' : 'grey',
                'stim2' : 'stimuli'}
     draw = {}
@@ -360,9 +354,7 @@ class Ordertrials(object):
     def trial_list(self,framelength):
         backgrounds = [f'BG0{str(x)}' for x in list(self.stim.unique_nr['BG'])]
         different_trials = ["_".join(items) for items in itertools.product(self.sf ,self.dur,self.match,self.stair,backgrounds)]
-        different_trials.extend(["_".join(items) for items in itertools.product(['control'],self.match,self.stair,backgrounds)])
         self.conditionlist = ["_".join(items) for items in itertools.product(self.sf ,self.dur)]
-        self.conditionlist.extend(['control'])
         # make this a dictionary
         self.trial_list = {}
         for key in different_trials:
@@ -376,12 +368,6 @@ class Ordertrials(object):
                 condname = f'{SF}_{dur}'
                 masking = 1
                 self.makelist(matchingcond, backgrounds, ImFrame, condname, SF, dur, masking)
-        ImFrame = 0
-        condname = 'control'
-        SF = ''
-        dur = 0
-        masking = 0
-        self.makelist(matchingcond, backgrounds, ImFrame, condname, SF, dur, masking)
                 
     def makelist(self, matchingcond, backgrounds, ImFrame, condname, SF, dur, masking):           
         for whichid in range(self.maxCeleb): # loop through ID's
@@ -397,17 +383,6 @@ class Ordertrials(object):
                                 num2 = 1 # making sure image 2 is the other image... :)
                             else:
                                 num2 = 0
-                            if condname == 'control': #ugly coded, because late minute added to experiment
-                                maskname1 = 'grey.bmp'
-                                maskname2 = 'grey.bmp'
-                                maskname3 = 'grey.bmp'
-                                maskname4 = 'grey.bmp'
-                            else:
-                                maskname1 = f'{combi_per_id[num1][:-5]}1_{SF}.bmp'
-                                maskname2 = f'{combi_per_id[num1][:-5]}2_{SF}.bmp'
-                                maskname3 = f'{combi_per_id[num1][:-5]}3_{SF}.bmp'
-                                maskname4 = f'{combi_per_id[num1][:-5]}4_{SF}.bmp'
-                                duration = dur ##################changed
                             # trial_list will be a dictionary with 24 keys
                             # the conditions are SF*duration (2*3 = 6 in the example)
                             # this is doubled to have the same/diff conditions for the matching task (2*6 = 12)
@@ -419,11 +394,8 @@ class Ordertrials(object):
                                 'stim1' : combi_per_id[num1],
                                 'stim2' : combi_per_id[num2],
                                 'matching' : trialtype,
-                                'mask1' : maskname1,
-                                'mask2' : maskname2,
-                                'mask3' : maskname3,
-                                'mask4' : maskname4,
-                                'duration' : 0,
+                                'mask' : f'{combi_per_id[num1][:-4]}_{SF}.bmp',
+                                'duration' : dur,
                                 'condition' : condname,
                                 'nframes' : ImFrame,
                                 'SF' : SF,
