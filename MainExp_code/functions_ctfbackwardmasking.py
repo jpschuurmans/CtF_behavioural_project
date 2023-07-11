@@ -376,10 +376,10 @@ class Ordertrials(object):
                 condname = f'{SF}_{dur}'
                 masking = 1
                 self.makelist(matchingcond, backgrounds, ImFrame, condname, SF, dur, masking)
+        ImFrame = 0
         condname = 'control'
         SF = ''
-        dur = 200 ##################changed
-        ImFrame = nframes(dur,framelength) ##################changed
+        dur = 0
         masking = 0
         self.makelist(matchingcond, backgrounds, ImFrame, condname, SF, dur, masking)
                 
@@ -402,7 +402,6 @@ class Ordertrials(object):
                                 maskname2 = 'grey.bmp'
                                 maskname3 = 'grey.bmp'
                                 maskname4 = 'grey.bmp'
-                                duration = 200 ##################changed
                             else:
                                 maskname1 = f'{combi_per_id[num1][:-5]}1_{SF}.bmp'
                                 maskname2 = f'{combi_per_id[num1][:-5]}2_{SF}.bmp'
@@ -424,7 +423,7 @@ class Ordertrials(object):
                                 'mask2' : maskname2,
                                 'mask3' : maskname3,
                                 'mask4' : maskname4,
-                                'duration' : duration,
+                                'duration' : 0,
                                 'condition' : condname,
                                 'nframes' : ImFrame,
                                 'SF' : SF,
