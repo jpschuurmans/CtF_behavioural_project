@@ -145,7 +145,7 @@ nframe = num_frames(fix_dur,int_dur,mask_dur,isi_dur,framelength)
 #%% ===========================================================================
 # Prepare/open window
 
-win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = [0,0,0], units ='pix', fullscr = False)
+win = visual.Window(monitor = mon, size = scrsize, screen=screennr, color = [0,0,0], units ='pix', fullscr = True)
 
 # prepare bitmaps for presenting images
 # VA in 3T exp was 4.37° x 3.18°
