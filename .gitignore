@@ -8,7 +8,6 @@
 
 /stimuli_matlab/*/*
 /stimuli_matlab/*.mat
-
-
+!/stimuli_matlab/functions
 
 
