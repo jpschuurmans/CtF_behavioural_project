@@ -36,7 +36,7 @@ def num_frames(fix_dur, int_dur, mask_dur, isi_dur, framelength):
     return nframe
 
 
-def loadimage(base_path,trialinfo,visibility,LC):
+def loadimage(base_path,trialinfo,visibility,LC, maskLC):
     # loading and occluding image ready for drawing
     stimuli = {'fix' : 'grey',
                'int' : 'grey',               
@@ -75,6 +75,8 @@ def loadimage(base_path,trialinfo,visibility,LC):
     draw[f'stim1'] = occlude(draw[f'stim1'],backim,visibility) ############### can this handle equalised images?
     for stim in draw:
         draw[stim] = equalise_im(draw[stim],LC)
+        if stim == 'mask':
+            draw[stim] = equalise_im(draw[stim],maskLC)
         #visualise: Image.fromarray(draw[f'stim1'].astype('uint8'))
         draw[stim] = replace_background(draw[stim],draw['int'],alphamask)    
     return draw

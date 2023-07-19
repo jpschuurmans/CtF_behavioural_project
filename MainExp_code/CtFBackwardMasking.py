@@ -56,7 +56,8 @@ staircases = ['1','2']
 maxCeleb = 8
 
 #desired luminance and contrast of images
-LC = [0.45, 0.1] # [0.45, 0.1] if between 0 and 1
+LC = [0.45, 0.5] # [0.45, 0.1] if between 0 and 1
+maskLC = [0.45, 1] 
 #occluded_image = (occluded_image*LC[1]) + LC[0]   # desired luminance and contrast
 
 screennr=2 #################################
@@ -520,7 +521,7 @@ for pracnr,practice_no in enumerate(practice_rounds):
                 
                 nframe['stim1'] = pract_trialinfo['nframes']
                 #load stim1, stim2 and mask
-                drawed = loadimage(base_path, pract_trialinfo, pract_trialinfo['contrast'], LC)
+                drawed = loadimage(base_path, pract_trialinfo, pract_trialinfo['contrast'], LC,maskLC)
             
                 #set stim1, stim2 and mask
                 for drawit in bitmap:
@@ -658,7 +659,7 @@ for bl,block in enumerate(blocks_ses[session]):
             print(f'block {miniblock}    -    {trialinfo["condition"]}    -    trial {idx}  stair {trialinfo["staircasenr"]}  -    {trialinfo["contrast"]}')
             
             #load stim1, stim2 and mask
-            drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC)
+            drawed = loadimage(base_path, trialinfo, trialinfo['contrast'], LC,maskLC)
         
             #set stim1, stim2 and mask
             for drawit in bitmap:

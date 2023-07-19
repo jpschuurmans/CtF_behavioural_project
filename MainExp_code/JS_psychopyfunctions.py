@@ -53,7 +53,27 @@ def equalise_im(loaded_image, LC):
         #but image needs to be equalised between [min -1, max +1]
         #loaded_image = 2.*(loaded_image - np.min(loaded_image)) / np.ptp(loaded_image)-1 # equalise image
         loaded_image = (equalised - np.min(equalised)) / np.ptp(equalised)-.65 # equalise image
+        if LC[1] == 1:
+            loaded_image = 2.*(equalised - np.min(equalised)) / np.ptp(equalised)-1
     return loaded_image
+
+
+# Get brightness range - i.e. darkest and lightest pixels
+#np.min(loaded_image)        
+#np.max(loaded_image)
+#np.min(equalised)
+#np.max(equalised)
+
+
+#for debugging
+             #  draw['mask'] = equalise_im(equalised,maskLC)
+              #  draw['mask'] = equalise_im(loaded_image,maskLC)
+                
+               # bitmap['mask'].setMask('circle')
+                #bitmap['mask'].setImage(draw['mask'])
+               # bitmap['mask'].draw()
+               # win.flip()
+
 
 def normalise_im(loaded_image):
     normalised = (loaded_image - np.min(loaded_image)) / np.ptp(loaded_image)
